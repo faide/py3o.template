@@ -17,7 +17,7 @@ setup(name='py3o.template',
       url='',
       license='BSD License',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-      namespace_packages=['py3o']
+      namespace_packages=['py3o'],
       include_package_data=True,
       zip_safe=True,
       install_requires=[
