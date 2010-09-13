@@ -3,6 +3,8 @@ import zipfile
 from StringIO import StringIO
 import urllib
 from genshi.template import MarkupTemplate
+from pyjon.utils import get_secure_filename
+import os
 
 GENSHI_URI = 'http://genshi.edgewall.org/'
 PY3O_URI = 'http://py3o.org/'
@@ -121,9 +123,10 @@ class Template(object):
             closing_row = closing_link.getparent()
 
         else:
-            raise NotImplementedError("We handle urls in tables of text paragraph only")
+            raise NotImplementedError("We handle urls in tables or text paragraph only")
 
-        instruction, instruction_value = py3o_base.split("=")
+        # mas split is one
+        instruction, instruction_value = py3o_base.split("=", 1)
         instruction_value = instruction_value.strip('"')
 
         attribs = dict()
@@ -197,7 +200,22 @@ class Template(object):
                         self.infile.read(info_zip.filename))
 
             else:
-                out.writestr("content.xml",
-                        self.outputstream.render('xml'))
+                # get a temp file
+                streamout = open(get_secure_filename(), "w+b")
 
+                # write the whole stream to it
+                for chunk in self.outputstream.serialize():
+                    streamout.write(chunk.encode('utf-8'))
+
+                # close the temp file to flush all data and make sure we get
+                # it back when writing to the zip archive.
+                streamout.close()
+
+                # write the full file to archive
+                out.write(streamout.name, "content.xml")
+
+                # remove tempfile
+                os.unlink(streamout.name)
+
+        # close the zipfile before leaving
         out.close()

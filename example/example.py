@@ -12,7 +12,7 @@ item1.val2 = 'Item1 Value2'
 item1.val3 = 'Item1 Value3'
 item1.Currency = 'EUR'
 item1.Amount = '12345.35'
-item1.InvoiceRef = 'Reference #1234'
+item1.InvoiceRef = '#1234'
 
 item2 = Item()
 item2.val1 = 'Item2 Value1'
