@@ -119,13 +119,14 @@ class Template(object):
             closing_row = closing_cell.getparent()
 
         elif link.getparent().tag == "{%s}p" % self.namespaces['text']:
+            # we are in a text paragraph
             opening_row = link.getparent()
             closing_row = closing_link.getparent()
 
         else:
             raise NotImplementedError("We handle urls in tables or text paragraph only")
 
-        # mas split is one
+        # max split is one
         instruction, instruction_value = py3o_base.split("=", 1)
         instruction_value = instruction_value.strip('"')
 
