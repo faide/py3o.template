@@ -159,7 +159,7 @@ class Template(object):
 
             parent.replace(userfield, genshi_node)
 
-    def render(self, data):
+    def render_flow(self, data):
         """render the OpenDocument with the user data
 
         @param data: the input stream of userdata. This should be a
@@ -187,7 +187,20 @@ class Template(object):
         self.outputstream = template.generate(**data)
 
         # then reconstruct a new ODT document with the generated content
-        self.__save_output()
+        for status in self.__save_output():
+            yield status
+
+    def render(self, data):
+        """render the OpenDocument with the user data
+
+        @param data: the input stream of userdata. This should be a
+        dictionnary mapping, keys being the values accessible to your
+        report.
+        @type data: dictionnary
+        """
+        for status in self.render_flow:
+            if not status:
+                raise ValueError, "unknown error"
 
     def __save_output(self):
         """Saves the output into a native OOo document format.
@@ -207,6 +220,7 @@ class Template(object):
                 # write the whole stream to it
                 for chunk in self.outputstream.serialize():
                     streamout.write(chunk.encode('utf-8'))
+                    yield True
 
                 # close the temp file to flush all data and make sure we get
                 # it back when writing to the zip archive.
@@ -220,3 +234,4 @@ class Template(object):
 
         # close the zipfile before leaving
         out.close()
+        yield True
