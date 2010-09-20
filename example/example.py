@@ -13,17 +13,17 @@ item1.val3 = 'Item1 Value3'
 item1.Currency = 'EUR'
 item1.Amount = '12345.35'
 item1.InvoiceRef = '#1234'
-
-item2 = Item()
-item2.val1 = 'Item2 Value1'
-item2.val2 = 'Item2 Value2'
-item2.val3 = 'Item2 Value3'
-item2.Currency = 'EUR'
-item2.Amount = '6666.77'
-item2.InvoiceRef = 'Reference #7777'
-
 items.append(item1)
-items.append(item2)
+
+for i in xrange(1000):
+    item = Item()
+    item.val1 = 'Item%s Value1' % i
+    item.val2 = 'Item%s Value2' % i
+    item.val3 = 'Item%s Value3' % i
+    item.Currency = 'EUR'
+    item.Amount = '6666.77'
+    item.InvoiceRef = 'Reference #%04d' % i
+    items.append(item)
 
 document = Item()
 document.total = '9999999999999.999'
