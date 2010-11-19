@@ -198,7 +198,7 @@ class Template(object):
         report.
         @type data: dictionnary
         """
-        for status in self.render_flow:
+        for status in self.render_flow(data):
             if not status:
                 raise ValueError, "unknown error"
 
