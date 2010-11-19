@@ -31,6 +31,7 @@ def move_siblings(start, end, new_):
     old_.remove(end)
 
 class Template(object):
+    templated_files = ['content.xml', 'styles.xml']
 
     def __init__(self, template, outfile):
         """A template object exposes the API to render it to an OpenOffice
@@ -47,9 +48,13 @@ class Template(object):
         self.template = template
         self.outputfilename = outfile
         self.infile = zipfile.ZipFile(self.template, 'r')
-
-        self.py3ocontent = lxml.etree.parse(StringIO(self.infile.read("content.xml")))
-        self.py3oroot = self.py3ocontent.getroot()
+        
+        self.content_trees = [lxml.etree.parse(StringIO(self.infile.read(filename)))
+                              for filename in self.templated_files]
+        self.tree_roots = [tree.getroot() for tree in self.content_trees]
+        
+#        self.py3ocontent = lxml.etree.parse(StringIO(self.infile.read("content.xml")))
+#        self.py3oroot = self.py3ocontent.getroot()
         self.__prepare_namespaces()
 
     def __prepare_namespaces(self):
@@ -65,8 +70,9 @@ class Template(object):
             svg="urn:svg",
             )
 
-        # copy namespaces from original doc
-        self.namespaces.update(self.py3oroot.nsmap)
+        # copy namespaces from original docs
+        for tree_root in self.tree_roots:
+            self.namespaces.update(tree_root.nsmap)
 
         # remove any "root" namespace as lxml.xpath do not support them
         self.namespaces.pop(None, None)
@@ -83,22 +89,23 @@ class Template(object):
         opened_starts = list()
         starting_tags = list()
         closing_tags = dict()
-
-        for link in self.py3ocontent.xpath(xpath_expr, namespaces=self.namespaces):
-            py3o_statement = urllib.unquote(link.attrib['{%s}href' % self.namespaces['xlink']])
-            # remove the py3o://
-            py3o_base = py3o_statement[7:]
-
-            if not py3o_base.startswith("/"):
-                opened_starts.append(link)
-                starting_tags.append((link, py3o_base))
-
-            else:
-                closing_tags[id(opened_starts.pop())] = link
+        
+        for content_tree in self.content_trees:
+            for link in content_tree.xpath(xpath_expr, namespaces=self.namespaces):
+                py3o_statement = urllib.unquote(link.attrib['{%s}href' % self.namespaces['xlink']])
+                # remove the py3o://
+                py3o_base = py3o_statement[7:]
+    
+                if not py3o_base.startswith("/"):
+                    opened_starts.append((content_tree, link))
+                    starting_tags.append((content_tree, link, py3o_base))
+    
+                else:
+                    closing_tags[id(opened_starts.pop()[1])] = (content_tree, link)
 
         return starting_tags, closing_tags
 
-    def __handle_link(self, link, py3o_base, closing_link):
+    def __handle_link(self, content_tree, link, py3o_base, closing_link):
         """transform a py3o link into a proper Genshi statement
         rebase a py3o link a a proper place in the tree
         to be ready for Genshi replacement
@@ -142,22 +149,22 @@ class Template(object):
     def __prepare_usertexts(self):
         """user-field-get"""
         xpath_expr = "//text:user-field-get[starts-with(@text:name, 'py3o.')]"
-
-        for userfield in self.py3ocontent.xpath(xpath_expr, namespaces=self.namespaces):
-            parent = userfield.getparent()
-            value = userfield.attrib['{%s}name' % self.namespaces['text']][5:]
-
-            attribs = dict()
-            attribs['{%s}strip' % GENSHI_URI] = 'True'
-            attribs['{%s}content' % GENSHI_URI] = value
-
-            genshi_node = lxml.etree.Element('span',
-                    attrib=attribs, nsmap={'py': GENSHI_URI})
-
-            if userfield.tail:
-                genshi_node.tail = userfield.tail
-
-            parent.replace(userfield, genshi_node)
+        for content_tree in self.content_trees:
+            for userfield in content_tree.xpath(xpath_expr, namespaces=self.namespaces):
+                parent = userfield.getparent()
+                value = userfield.attrib['{%s}name' % self.namespaces['text']][5:]
+    
+                attribs = dict()
+                attribs['{%s}strip' % GENSHI_URI] = 'True'
+                attribs['{%s}content' % GENSHI_URI] = value
+    
+                genshi_node = lxml.etree.Element('span',
+                        attrib=attribs, nsmap={'py': GENSHI_URI})
+    
+                if userfield.tail:
+                    genshi_node.tail = userfield.tail
+    
+                parent.replace(userfield, genshi_node)
 
     def render_flow(self, data):
         """render the OpenDocument with the user data
@@ -171,20 +178,22 @@ class Template(object):
         # first we need to transform the py3o template into a valid
         # Genshi template.
         starting_tags, closing_tags = self.__handle_instructions()
-        for link, py3o_base in starting_tags:
-            self.__handle_link(link, py3o_base, closing_tags[id(link)])
+        for content_tree, link, py3o_base in starting_tags:
+            self.__handle_link(content_tree, link, py3o_base, closing_tags[id(link)][1])
 
         self.__prepare_usertexts()
 
         #out = open("content.xml", "w+")
         #out.write(lxml.etree.tostring(self.py3ocontent.getroot()))
         #out.close()
-
-        template = MarkupTemplate(lxml.etree.tostring(self.py3ocontent.getroot()))
-        # then we need to render the genshi template itself by
-        # providing the data to genshi
-        
-        self.outputstream = template.generate(**data)
+        self.output_streams = list()
+        for fnum, content_tree in enumerate(self.content_trees): 
+            template = MarkupTemplate(lxml.etree.tostring(content_tree.getroot()))
+            # then we need to render the genshi template itself by
+            # providing the data to genshi
+            
+            self.output_streams.append((self.templated_files[fnum],
+                                        template.generate(**data)))
 
         # then reconstruct a new ODT document with the generated content
         for status in self.__save_output():
@@ -209,16 +218,18 @@ class Template(object):
 
         # copy everything from the source archive expect content.xml
         for info_zip in self.infile.infolist():
-            if not info_zip.filename == "content.xml":
+            if not info_zip.filename in self.templated_files:
                 out.writestr(info_zip,
-                        self.infile.read(info_zip.filename))
+                             self.infile.read(info_zip.filename))
 
             else:
                 # get a temp file
                 streamout = open(get_secure_filename(), "w+b")
+                fname, output_stream = self.output_streams[
+                                self.templated_files.index(info_zip.filename)]
 
                 # write the whole stream to it
-                for chunk in self.outputstream.serialize():
+                for chunk in output_stream.serialize():
                     streamout.write(chunk.encode('utf-8'))
                     yield True
 
@@ -227,7 +238,7 @@ class Template(object):
                 streamout.close()
 
                 # write the full file to archive
-                out.write(streamout.name, "content.xml")
+                out.write(streamout.name, fname)
 
                 # remove tempfile
                 os.unlink(streamout.name)
