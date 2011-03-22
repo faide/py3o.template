@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.1'
+version = '0.2'
 
 setup(name='py3o.template',
       version=version,
@@ -30,3 +30,4 @@ setup(name='py3o.template',
       """,
       test_suite = 'nose.collector',
       )
+2
