@@ -5,6 +5,7 @@ import urllib
 from genshi.template import MarkupTemplate
 from pyjon.utils import get_secure_filename
 import os
+import decimal
 
 GENSHI_URI = 'http://genshi.edgewall.org/'
 PY3O_URI = 'http://py3o.org/'
@@ -145,6 +146,17 @@ class Template(object):
                 attrib=attribs, nsmap={'py': GENSHI_URI})
 
         move_siblings(opening_row, closing_row, genshi_node)
+        
+    def __prepare_userfield_decl(self):
+        self.field_info = dict()
+        xpath_expr = "//text:user-field-decl[starts-with(@text:name, 'py3o.')]"
+        for content_tree in self.content_trees:
+            for userfield in content_tree.xpath(xpath_expr, namespaces=self.namespaces):
+                value = userfield.attrib['{%s}name' % self.namespaces['text']][5:]
+                value_type = userfield.attrib.get('{%s}value-type' % self.namespaces['office'], 'string')
+                
+                self.field_info[value] = dict(name=value,
+                                              value_type=value_type)
 
     def __prepare_usertexts(self):
         """user-field-get"""
@@ -153,7 +165,53 @@ class Template(object):
             for userfield in content_tree.xpath(xpath_expr, namespaces=self.namespaces):
                 parent = userfield.getparent()
                 value = userfield.attrib['{%s}name' % self.namespaces['text']][5:]
-    
+                #value_type = userfield.attrib.get('{%s}value-type' % self.namespaces['office'], 'string')
+                value_type = self.field_info[value]['value_type']
+                
+                # we try to override global var type with local settings
+                value_type_attr = '{%s}value-type' % self.namespaces['office']
+                rec = 0
+                npar = parent
+                
+                # special case for float which has a value info on top level
+                # overriding local value
+                found_node = False
+                while rec <= 5:
+                    if npar is None:
+                        break
+                    
+                    if value_type_attr in npar.attrib:
+                        value_type = npar.attrib[value_type_attr]
+                        found_node = True
+                        break
+                    
+                    npar = npar.getparent()
+                    
+                if value_type == 'float':
+                    value_attr = '{%s}value' % self.namespaces['office']
+                    rec = 0
+                    
+                    if found_node:
+                        npar.attrib[value_attr] = "${%s}" % value
+                    else:
+                        npar = userfield
+                        while rec <= 7:
+                            if npar is None:
+                                break
+                            
+                            if value_attr in npar.attrib:
+                                npar.attrib[value_attr] = "${%s}" % value
+                                break
+                            
+                            npar = npar.getparent()
+                            
+                    value = "format_float(%s)" % value
+                    
+                if value_type == 'percentage':
+                    del npar.attrib[value_attr]
+                    value = "format_percentage(%s)" % value
+                    npar.attrib[value_type_attr] = "string"
+                    
                 attribs = dict()
                 attribs['{%s}strip' % GENSHI_URI] = 'True'
                 attribs['{%s}content' % GENSHI_URI] = value
@@ -174,13 +232,21 @@ class Template(object):
         report.
         @type data: dictionnary
         """
+        
+        newdata = dict(decimal=decimal,
+                       format_float = (lambda val: (isinstance(val, decimal.Decimal)
+                                                   or isinstance(val, float))
+                                                   and str(val).replace('.', ',') or val),
+                       format_percentage = (lambda val: ("%0.2f %%" % val).replace('.', ','))
+                       )
 
         # first we need to transform the py3o template into a valid
         # Genshi template.
         starting_tags, closing_tags = self.__handle_instructions()
         for content_tree, link, py3o_base in starting_tags:
             self.__handle_link(content_tree, link, py3o_base, closing_tags[id(link)][1])
-
+        
+        self.__prepare_userfield_decl()
         self.__prepare_usertexts()
 
         #out = open("content.xml", "w+")
@@ -193,7 +259,7 @@ class Template(object):
             # providing the data to genshi
             
             self.output_streams.append((self.templated_files[fnum],
-                                        template.generate(**data)))
+                                        template.generate(**dict(data.items() + newdata.items()))))
 
         # then reconstruct a new ODT document with the generated content
         for status in self.__save_output():
