@@ -2,6 +2,10 @@ syntax: glob
 **/*.pyc
 *.swp
 .tmp*
+.coverage
+coverage.xml
+nosetests.xml
+example/py3o_example_output.odt
 *.egg-info
 dist/*
 build/*
