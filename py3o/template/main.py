@@ -108,7 +108,7 @@ class Template(object):
 
     def __handle_link(self, content_tree, link, py3o_base, closing_link):
         """transform a py3o link into a proper Genshi statement
-        rebase a py3o link a a proper place in the tree
+        rebase a py3o link at a proper place in the tree
         to be ready for Genshi replacement
         """
         if hasattr(link, 'iter'):
