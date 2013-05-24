@@ -111,9 +111,14 @@ class Template(object):
         rebase a py3o link a a proper place in the tree
         to be ready for Genshi replacement
         """
-        if not link[0].text == py3o_base:
-            msg = "url and text do not match in '%s'" % link.text
-            raise ValueError(msg)
+        if hasattr(link, 'iter'):
+            if not link[0].text == py3o_base:
+                msg = "url and text do not match in '%s'" % link.text
+                raise ValueError(msg)
+        else:
+            if not link.text == py3o_base:
+                msg = "url and text do not match in '%s'" % link.text
+                raise ValueError(msg)
 
         if link.getparent().getparent().tag == "{%s}table-cell" % self.namespaces['table']:
             # we are in a table
