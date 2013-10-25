@@ -28,6 +28,7 @@ setup(name='py3o.template',
           'setuptools',
           'lxml',
           'genshi',
+          'pyjon.utils',
           ],
       entry_points="""
       # -*- Entry points: -*-
