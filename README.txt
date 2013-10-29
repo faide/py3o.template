@@ -53,4 +53,39 @@ directory.
     data = dict(items=items, document=document)
     t.render(data)
 
+Template design
+===============
 
+Inserting variables
+-------------------
+
+In order to insert py3o variables inside the LibreOffice template file, use
+the dialog box accessible from Insert > Fields > Variables.
+
+In "Type", select" "User Field".
+In "Format", select "Text".
+
+Type the variable to use in the "Name" field, prefixed with "py3o."; for
+example:
+    py3o.document.total
+
+In "Value", type any string of your choice; that string will be displayed in
+the template and replaced at parsing time by the contents of the variable.
+
+Structure keywords
+------------------
+
+Some keywords are available to control the content:
+    - "if" inserts an optional block.
+    - "for" allows looping through a container.
+
+Keywords are inserted as hyperlinks, with the syntax:
+    keyword="expression"
+
+Keyword blocks have to be terminated with another hyperlink; syntax:
+    /keyword
+
+Page breaks
+-----------
+
+To insert page breaks, just use regular LibreOffice page breaking features.
