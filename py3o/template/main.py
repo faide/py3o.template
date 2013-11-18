@@ -49,11 +49,11 @@ class Template(object):
         self.template = template
         self.outputfilename = outfile
         self.infile = zipfile.ZipFile(self.template, 'r')
-        
+
         self.content_trees = [lxml.etree.parse(StringIO(self.infile.read(filename)))
                               for filename in self.templated_files]
         self.tree_roots = [tree.getroot() for tree in self.content_trees]
-        
+
 #        self.py3ocontent = lxml.etree.parse(StringIO(self.infile.read("content.xml")))
 #        self.py3oroot = self.py3ocontent.getroot()
         self.__prepare_namespaces()
@@ -90,17 +90,17 @@ class Template(object):
         opened_starts = list()
         starting_tags = list()
         closing_tags = dict()
-        
+
         for content_tree in self.content_trees:
             for link in content_tree.xpath(xpath_expr, namespaces=self.namespaces):
                 py3o_statement = urllib.unquote(link.attrib['{%s}href' % self.namespaces['xlink']])
                 # remove the py3o://
                 py3o_base = py3o_statement[7:]
-    
+
                 if not py3o_base.startswith("/"):
                     opened_starts.append((content_tree, link))
                     starting_tags.append((content_tree, link, py3o_base))
-    
+
                 else:
                     closing_tags[id(opened_starts.pop()[1])] = (content_tree, link)
 
@@ -111,12 +111,15 @@ class Template(object):
         rebase a py3o link at a proper place in the tree
         to be ready for Genshi replacement
         """
-        if hasattr(link, 'iter'):
-            if not link[0].text == py3o_base:
+        # OLD open office version
+        if not link.text is None:
+            if not link.text == py3o_base:
                 msg = "url and text do not match in '%s'" % link.text
                 raise ValueError(msg)
+
+        # new open office version
         else:
-            if not link.text == py3o_base:
+            if not link[0].text == py3o_base:
                 msg = "url and text do not match in '%s'" % link.text
                 raise ValueError(msg)
 
@@ -151,7 +154,7 @@ class Template(object):
                 attrib=attribs, nsmap={'py': GENSHI_URI})
 
         move_siblings(opening_row, closing_row, genshi_node)
-        
+
     def __prepare_userfield_decl(self):
         self.field_info = dict()
         xpath_expr = "//text:user-field-decl[starts-with(@text:name, 'py3o.')]"
@@ -159,7 +162,7 @@ class Template(object):
             for userfield in content_tree.xpath(xpath_expr, namespaces=self.namespaces):
                 value = userfield.attrib['{%s}name' % self.namespaces['text']][5:]
                 value_type = userfield.attrib.get('{%s}value-type' % self.namespaces['office'], 'string')
-                
+
                 self.field_info[value] = dict(name=value,
                                               value_type=value_type)
 
@@ -172,30 +175,30 @@ class Template(object):
                 value = userfield.attrib['{%s}name' % self.namespaces['text']][5:]
                 #value_type = userfield.attrib.get('{%s}value-type' % self.namespaces['office'], 'string')
                 value_type = self.field_info[value]['value_type']
-                
+
                 # we try to override global var type with local settings
                 value_type_attr = '{%s}value-type' % self.namespaces['office']
                 rec = 0
                 npar = parent
-                
+
                 # special case for float which has a value info on top level
                 # overriding local value
                 found_node = False
                 while rec <= 5:
                     if npar is None:
                         break
-                    
+
                     if value_type_attr in npar.attrib:
                         value_type = npar.attrib[value_type_attr]
                         found_node = True
                         break
-                    
+
                     npar = npar.getparent()
-                    
+
                 if value_type == 'float':
                     value_attr = '{%s}value' % self.namespaces['office']
                     rec = 0
-                    
+
                     if found_node:
                         npar.attrib[value_attr] = "${%s}" % value
                     else:
@@ -203,30 +206,30 @@ class Template(object):
                         while rec <= 7:
                             if npar is None:
                                 break
-                            
+
                             if value_attr in npar.attrib:
                                 npar.attrib[value_attr] = "${%s}" % value
                                 break
-                            
+
                             npar = npar.getparent()
-                            
+
                     value = "format_float(%s)" % value
-                    
+
                 if value_type == 'percentage':
                     del npar.attrib[value_attr]
                     value = "format_percentage(%s)" % value
                     npar.attrib[value_type_attr] = "string"
-                    
+
                 attribs = dict()
                 attribs['{%s}strip' % GENSHI_URI] = 'True'
                 attribs['{%s}content' % GENSHI_URI] = value
-    
+
                 genshi_node = lxml.etree.Element('span',
                         attrib=attribs, nsmap={'py': GENSHI_URI})
-    
+
                 if userfield.tail:
                     genshi_node.tail = userfield.tail
-    
+
                 parent.replace(userfield, genshi_node)
 
     def render_flow(self, data):
@@ -237,7 +240,7 @@ class Template(object):
         report.
         @type data: dictionnary
         """
-        
+
         newdata = dict(decimal=decimal,
                        format_float = (lambda val: (isinstance(val, decimal.Decimal)
                                                    or isinstance(val, float))
@@ -250,7 +253,7 @@ class Template(object):
         starting_tags, closing_tags = self.__handle_instructions()
         for content_tree, link, py3o_base in starting_tags:
             self.__handle_link(content_tree, link, py3o_base, closing_tags[id(link)][1])
-        
+
         self.__prepare_userfield_decl()
         self.__prepare_usertexts()
 
@@ -258,11 +261,11 @@ class Template(object):
         #out.write(lxml.etree.tostring(self.py3ocontent.getroot()))
         #out.close()
         self.output_streams = list()
-        for fnum, content_tree in enumerate(self.content_trees): 
+        for fnum, content_tree in enumerate(self.content_trees):
             template = MarkupTemplate(lxml.etree.tostring(content_tree.getroot()))
             # then we need to render the genshi template itself by
             # providing the data to genshi
-            
+
             self.output_streams.append((self.templated_files[fnum],
                                         template.generate(**dict(data.items() + newdata.items()))))
 
