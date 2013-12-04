@@ -34,5 +34,3 @@ document.total = '9999999999999.999'
 
 data = dict(items=items, document=document)
 t.render(data)
-
-
