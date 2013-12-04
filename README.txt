@@ -24,7 +24,11 @@ directory.
 
     t = Template("py3o_example_template.odt", "py3o_example_output.odt")
 
-    class Item(object): pass
+    t.set_image_path('logo', 'dummy_logo.png')
+
+
+    class Item(object):
+        pass
 
     items = list()
 
@@ -89,3 +93,14 @@ Page breaks
 -----------
 
 To insert page breaks, just use regular LibreOffice page breaking features.
+
+Images
+------
+
+py3o.template can replace images on-the-fly. To add an image field, add a
+regular image as a placeholder, open its properties and prefix its name with
+"py3o."; the rest of the image name is then its identifier.
+
+Call one of the following methods to set image data:
+    - set_image_path
+    - set_image_data

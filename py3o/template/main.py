@@ -1,3 +1,4 @@
+from base64 import b64encode
 import lxml.etree
 import zipfile
 from StringIO import StringIO
@@ -57,6 +58,8 @@ class Template(object):
 #        self.py3ocontent = lxml.etree.parse(StringIO(self.infile.read("content.xml")))
 #        self.py3oroot = self.py3ocontent.getroot()
         self.__prepare_namespaces()
+
+        self.images = {}
 
     def __prepare_namespaces(self):
         """create proper namespaces for our document
@@ -157,9 +160,12 @@ class Template(object):
 
     def __prepare_userfield_decl(self):
         self.field_info = dict()
-        xpath_expr = "//text:user-field-decl[starts-with(@text:name, 'py3o.')]"
+        field_expr = "//text:user-field-decl[starts-with(@text:name, 'py3o.')]"
         for content_tree in self.content_trees:
-            for userfield in content_tree.xpath(xpath_expr, namespaces=self.namespaces):
+            for userfield in content_tree.xpath(
+                field_expr,
+                namespaces=self.namespaces
+            ):
                 value = userfield.attrib['{%s}name' % self.namespaces['text']][5:]
                 value_type = userfield.attrib.get('{%s}value-type' % self.namespaces['office'], 'string')
 
@@ -167,10 +173,21 @@ class Template(object):
                                               value_type=value_type)
 
     def __prepare_usertexts(self):
-        """user-field-get"""
-        xpath_expr = "//text:user-field-get[starts-with(@text:name, 'py3o.')]"
+        """Replace elements starting with "py3o.":
+        - Replace user-type text fields by genshi instructions.
+        - Remove link attributes of placeholder images and insert their
+        Base64-encoded data instead.
+        """
+
+        field_expr = "//text:user-field-get[starts-with(@text:name, 'py3o.')]"
+        image_expr = "//draw:frame[starts-with(@draw:name, 'py3o.')]"
+
         for content_tree in self.content_trees:
-            for userfield in content_tree.xpath(xpath_expr, namespaces=self.namespaces):
+
+            for userfield in content_tree.xpath(
+                field_expr,
+                namespaces=self.namespaces
+            ):
                 parent = userfield.getparent()
                 value = userfield.attrib['{%s}name' % self.namespaces['text']][5:]
                 #value_type = userfield.attrib.get('{%s}value-type' % self.namespaces['office'], 'string')
@@ -232,6 +249,33 @@ class Template(object):
 
                 parent.replace(userfield, genshi_node)
 
+            # Find draw:frame tags.
+            for draw_frame in content_tree.xpath(
+                image_expr,
+                namespaces=self.namespaces
+            ):
+                # Find the identifier of the image (py3o.[identifier]).
+                image_id = draw_frame.attrib[
+                    '{%s}name' % self.namespaces['draw']
+                ][5:]
+                if image_id not in self.images:
+                    raise ValueError(
+                        "Can't find data for the image named 'py3o.%s'; make "
+                        "sure it has been added with the set_image_path or "
+                        "set_image_data methods."
+                        % image_id
+                    )
+
+                # Remove link attributes of the draw:image tag then add an
+                # office:binary-data one.
+                image = draw_frame[0]
+                image.clear()
+                image_binary = lxml.etree.SubElement(
+                    image,
+                    '{%s}binary-data' % self.namespaces['office']
+                )
+                image_binary.text = self.images[image_id]
+
     def render_flow(self, data):
         """render the OpenDocument with the user data
 
@@ -284,6 +328,34 @@ class Template(object):
         for status in self.render_flow(data):
             if not status:
                 raise ValueError, "unknown error"
+
+    def set_image_path(self, identifier, path):
+        """Set data for an image mentioned in the template.
+
+        @param identifier: Identifier of the image; refer to the image in the
+        template by setting "py3o.[identifier]" as the name of that image.
+        @type identifier: string
+
+        @param path: Image path.
+        @type data: string
+        """
+
+        f = file(path, 'rb')
+        self.set_image_data(identifier, b64encode(f.read()))
+        f.close()
+
+    def set_image_data(self, identifier, data):
+        """Set data for an image mentioned in the template.
+
+        @param identifier: Identifier of the image; refer to the image in the
+        template by setting "py3o.[identifier]" as the name of that image.
+        @type identifier: string
+
+        @param data: Base64-encoded representation of the image.
+        @type data: binary
+        """
+
+        self.images[identifier] = data
 
     def __save_output(self):
         """Saves the output into a native OOo document format.
