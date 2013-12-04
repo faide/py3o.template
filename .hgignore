@@ -6,6 +6,7 @@ syntax: glob
 coverage.xml
 nosetests.xml
 example/py3o_example_output.odt
+example/py3o_example_page_break_output.odt
 *.egg-info
 dist/*
 build/*
