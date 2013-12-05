@@ -1,4 +1,3 @@
-from base64 import b64encode
 import lxml.etree
 import zipfile
 from StringIO import StringIO
@@ -10,6 +9,11 @@ import decimal
 
 GENSHI_URI = 'http://genshi.edgewall.org/'
 PY3O_URI = 'http://py3o.org/'
+
+# Images are stored in the "Pictures" directory and prefixed with "py3o-".
+# Saving images in a sub-directory would be cleaner but doesn't seem to be
+# supported...
+PY3O_IMAGE_PREFIX = 'Pictures/py3o-'
 
 
 def move_siblings(start, end, new_):
@@ -35,7 +39,7 @@ def move_siblings(start, end, new_):
 
 
 class Template(object):
-    templated_files = ['content.xml', 'styles.xml']
+    templated_files = ['content.xml', 'styles.xml', 'META-INF/manifest.xml']
 
     def __init__(self, template, outfile):
         """A template object exposes the API to render it to an OpenOffice
@@ -77,6 +81,7 @@ class Template(object):
             office="urn:office",
             xlink="urn:xlink",
             svg="urn:svg",
+            manifest="urn:manifest",
             )
 
         # copy namespaces from original docs
@@ -194,14 +199,11 @@ class Template(object):
                                               value_type=value_type)
 
     def __prepare_usertexts(self):
-        """Replace elements starting with "py3o.":
-        - Replace user-type text fields by genshi instructions.
-        - Remove link attributes of placeholder images and insert their
-        Base64-encoded data instead.
+        """Replace user-type text fields that start with "py3o." with genshi
+        instructions.
         """
 
         field_expr = "//text:user-field-get[starts-with(@text:name, 'py3o.')]"
-        image_expr = "//draw:frame[starts-with(@draw:name, 'py3o.')]"
 
         for content_tree in self.content_trees:
 
@@ -275,6 +277,16 @@ class Template(object):
 
                 parent.replace(userfield, genshi_node)
 
+    def __replace_image_links(self):
+        """Replace links of placeholder images (the name of which starts with
+        "py3o.") to point to a file saved the "Pictures" directory of the
+        archive.
+        """
+
+        image_expr = "//draw:frame[starts-with(@draw:name, 'py3o.')]"
+
+        for content_tree in self.content_trees:
+
             # Find draw:frame tags.
             for draw_frame in content_tree.xpath(
                 image_expr,
@@ -292,15 +304,40 @@ class Template(object):
                         % image_id
                     )
 
-                # Remove link attributes of the draw:image tag then add an
-                # office:binary-data one.
+                # Replace the xlink:href attribute of the image to point to
+                # ours.
                 image = draw_frame[0]
-                image.clear()
-                image_binary = lxml.etree.SubElement(
-                    image,
-                    '{%s}binary-data' % self.namespaces['office']
+                image.attrib[
+                    '{%s}href' % self.namespaces['xlink']
+                ] = PY3O_IMAGE_PREFIX + image_id
+
+    def __add_images_to_manifest(self):
+        """Add entries for py3o images into the manifest file."""
+
+        xpath_expr = "//manifest:manifest[1]"
+
+        for content_tree in self.content_trees:
+
+            # Find manifest:manifest tags.
+            manifest_e = content_tree.xpath(
+                xpath_expr,
+                namespaces=self.namespaces
+            )
+            if not manifest_e:
+                continue
+
+            for identifier in self.images.keys():
+                # Add a manifest:file-entry tag.
+                lxml.etree.SubElement(
+                    manifest_e[0],
+                    '{%s}file-entry' % self.namespaces['manifest'],
+                    attrib={
+                        '{%s}full-path' % self.namespaces['manifest']: (
+                            PY3O_IMAGE_PREFIX + identifier
+                        ),
+                        '{%s}media-type' % self.namespaces['manifest']: '',
+                    }
                 )
-                image_binary.text = self.images[image_id]
 
     def render_flow(self, data):
         """render the OpenDocument with the user data
@@ -335,6 +372,9 @@ class Template(object):
 
         self.__prepare_userfield_decl()
         self.__prepare_usertexts()
+
+        self.__replace_image_links()
+        self.__add_images_to_manifest()
 
         # out = open("content.xml", "w+")
         # out.write(lxml.etree.tostring(self.py3ocontent.getroot()))
@@ -380,7 +420,7 @@ class Template(object):
         """
 
         f = file(path, 'rb')
-        self.set_image_data(identifier, b64encode(f.read()))
+        self.set_image_data(identifier, f.read())
         f.close()
 
     def set_image_data(self, identifier, data):
@@ -390,7 +430,7 @@ class Template(object):
         template by setting "py3o.[identifier]" as the name of that image.
         @type identifier: string
 
-        @param data: Base64-encoded representation of the image.
+        @param data: Contents of the image.
         @type data: binary
         """
 
@@ -401,17 +441,16 @@ class Template(object):
         """
         out = zipfile.ZipFile(self.outputfilename, 'w')
 
-        # copy everything from the source archive except template files.
         for info_zip in self.infile.infolist():
-            if not info_zip.filename in self.templated_files:
-                out.writestr(info_zip,
-                             self.infile.read(info_zip.filename))
 
-            else:
+            if info_zip.filename in self.templated_files:
+                # Template file - we have edited these.
+
                 # get a temp file
                 streamout = open(get_secure_filename(), "w+b")
                 fname, output_stream = self.output_streams[
-                                self.templated_files.index(info_zip.filename)]
+                    self.templated_files.index(info_zip.filename)
+                ]
 
                 # write the whole stream to it
                 for chunk in output_stream.serialize():
@@ -427,6 +466,14 @@ class Template(object):
 
                 # remove tempfile
                 os.unlink(streamout.name)
+
+            else:
+                # Copy other files straight from the source archive.
+                out.writestr(info_zip, self.infile.read(info_zip.filename))
+
+        # Save images in the "Pictures" sub-directory of the archive.
+        for identifier, data in self.images.iteritems():
+            out.writestr(PY3O_IMAGE_PREFIX + identifier, data)
 
         # close the zipfile before leaving
         out.close()
