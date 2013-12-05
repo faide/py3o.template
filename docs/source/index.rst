@@ -16,10 +16,11 @@ Contents:
 
 
 
-Indices and tables
-==================
+.. This below section is commented out...
+    Indices and tables
+    ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+    * :ref:`genindex`
+    * :ref:`modindex`
+    * :ref:`search`
 
