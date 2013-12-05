@@ -10,7 +10,17 @@ It is plateform independant and does not require LibreOffice/OpenOffice itself
 to generate an ODF file.
 If you want to generate a PDF or any other support output format you will then
 need to have a server with either LibreOffice or OpenOffice and to install
-the py3o.renderserver on it.
+the `py3o.renderserver`_ on it.
+
+  .. _py3o.renderserver: https://bitbucket.org/faide/py3o.renderserver/
+
+Full Documentation
+==================
+
+We `provide a documentation`_ for this package. If anything is not correctly explained, please! create a ticket `in our ticketing system`_
+
+  .. _provide a documentation: http://py3otemplate.readthedocs.org
+  .. _in our ticketing system: https://bitbucket.org/faide/py3o.template/issues?status=new&status=open
 
 Example Usage
 =============
