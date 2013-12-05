@@ -102,6 +102,7 @@ class Template(object):
                     starting_tags.append((content_tree, link, py3o_base))
 
                 else:
+                    # TODO: handle the case when the closing tag is mismatched
                     closing_tags[id(opened_starts.pop()[1])] = (content_tree, link)
 
         return starting_tags, closing_tags
@@ -283,7 +284,7 @@ class Template(object):
         """
         for status in self.render_flow(data):
             if not status:
-                raise ValueError, "unknown error"
+                raise ValueError("unknown error")
 
     def __save_output(self):
         """Saves the output into a native OOo document format.

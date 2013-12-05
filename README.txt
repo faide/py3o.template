@@ -52,5 +52,3 @@ directory.
 
     data = dict(items=items, document=document)
     t.render(data)
-
-
