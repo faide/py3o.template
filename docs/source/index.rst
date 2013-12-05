@@ -11,8 +11,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   templating.rst
    pythoncode.rst
+   templating.rst
 
 
 
