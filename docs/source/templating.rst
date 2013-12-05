@@ -7,10 +7,10 @@ Define variables
 If you have read the Python code above you have seen that we pushed
 a dictionnary to our template.render() method. We must now declare the attributes you want to use from those variables in LibreOffice.
 
-This is done by creating user fields with specific names. The naming scheme is
+This is done by creating user fields (CTRL-F2) with specific names. The naming scheme is
 important because it permits differentiate real user fields, which have their own purpose we won't discuss in this document, from the ones we define in order to easily use them in our templates.
 
-User fields should be defined as follows:
+User fields should be defined as follows, press CTRL-F2 then choose variables and user-fields:
 
   .. image:: images/fields_definition.png
 
@@ -58,6 +58,10 @@ Once you have setup variables and defined some optional control structures you c
 The best way it to use the menu::
 
     Insert > Field > Other
+
+or just press::
+
+    CTRL-F2
 
 then choose User fields in the field type selection, then choose your desired variable in the second column and then finally click the green arrow at the bottom:
 
