@@ -401,7 +401,7 @@ class Template(object):
         """
         out = zipfile.ZipFile(self.outputfilename, 'w')
 
-        # copy everything from the source archive expect content.xml
+        # copy everything from the source archive except template files.
         for info_zip in self.infile.infolist():
             if not info_zip.filename in self.templated_files:
                 out.writestr(info_zip,
