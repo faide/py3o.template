@@ -2,7 +2,7 @@ from py3o.template import Template
 
 t = Template("py3o_example_template.odt", "py3o_example_output.odt")
 
-t.set_image_path('logo', 'dummy_logo.png')
+t.set_image_path('logo', 'images/new_logo.png')
 
 
 class Item(object):
