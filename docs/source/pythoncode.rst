@@ -11,7 +11,11 @@ from python code::
 
     t = Template("py3o_example_template.odt", "py3o_example_output.odt")
 
-    class Item(object): pass
+    t.set_image_path('logo', 'images/new_logo.png')
+
+
+    class Item(object):
+        pass
 
     items = list()
 

@@ -92,7 +92,9 @@ This operation will insert your user field near your cursor. This field will be 
 Insert placeholder images
 -------------------------
 
-py3o.template can replace images on-the-fly. To add an image field, add a regular image as a placeholder, open its properties and prefix its name with "py3o."; the rest of the image name is then its identifier.
+py3o.template can replace images on-the-fly. To add an image field, add a regular image as a placeholder, open its properties and prefix its name with "py3o."; the rest of the image name is then its identifier:
+
+  .. image:: images/image_name.png
 
 The Python code has to call set_image_path or set_image_data to let py3o know about the image; check our example code.
 
