@@ -6,7 +6,7 @@ setup(
     name='py3o.template',
     version=version,
     description="An easy solution to design reports using OpenOffice",
-    long_description=open("README.txt").read(),
+    long_description=open("README.rst").read(),
     classifiers=[
         "Programming Language :: Python",
         "Topic :: Software Development :: Libraries :: Python Modules",
