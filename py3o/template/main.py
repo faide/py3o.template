@@ -149,12 +149,18 @@ class Template(object):
             # we are in a table
             opening_paragraph = link.getparent()
             opening_cell = opening_paragraph.getparent()
-            opening_row = opening_cell.getparent()
 
             # same for closing
             closing_paragraph = closing_link.getparent()
             closing_cell = closing_paragraph.getparent()
-            closing_row = closing_cell.getparent()
+
+            if opening_cell == closing_cell:
+                # block is fully in a single cell
+                opening_row = opening_paragraph
+                closing_row = closing_paragraph
+            else:
+                opening_row = opening_cell.getparent()
+                closing_row = closing_cell.getparent()
 
         elif link.getparent().tag == "{%s}p" % self.namespaces['text']:
             # we are in a text paragraph
