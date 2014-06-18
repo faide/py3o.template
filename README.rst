@@ -77,7 +77,7 @@ By order of contribution date:
   - `jon1012`_
   - `Eugene Morozov`_
   - `Houzéfa Abbasbay`_
-  - Torsten Irländer
+  - `Torsten Irländer`_
   - `Sergey Fedoseev`_
   - `Vincent Lhote-Hatakeyama`_
 
@@ -86,5 +86,6 @@ By order of contribution date:
 .. _jon1012: https://bitbucket.org/jon1012
 .. _Eugene Morozov: https://bitbucket.org/mojo
 .. _Houzéfa Abbasbay: https://bitbucket.org/houzefa-abba
+.. _Torsten Irländer: https://bitbucket.org/ti
 .. _Sergey Fedoseev: https://bitbucket.org/sir_sigurd
 .. _Vincent Lhote-Hatakeyama: https://bitbucket.org/vincent_lhote
