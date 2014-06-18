@@ -66,3 +66,13 @@ directory.
 
     data = dict(items=items, document=document)
     t.render(data)
+
+Contributors
+============
+
+  - `Houzéfa Abbasbay`_
+  - Torsten Irländer
+  - `sir_sigurd`_
+
+.. _Houzéfa Abbasbay:https://bitbucket.org/houzefa-abba
+.. _sir_sigurd:https://bitbucket.org/sir_sigurd
