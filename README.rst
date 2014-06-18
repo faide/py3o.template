@@ -72,7 +72,7 @@ Contributors
 
   - `Houzéfa Abbasbay`_
   - Torsten Irländer
-  - `sir_sigurd`_
+  - `Sergey Fedoseev`_
 
 .. _Houzéfa Abbasbay:https://bitbucket.org/houzefa-abba
-.. _sir_sigurd:https://bitbucket.org/sir_sigurd
+.. _Sergey Fedoseev:https://bitbucket.org/sir_sigurd
