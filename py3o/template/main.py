@@ -348,10 +348,9 @@ class Template(object):
     def render_flow(self, data):
         """render the OpenDocument with the user data
 
-        @param data: the input stream of userdata. This should be a
-        dictionnary mapping, keys being the values accessible to your
-        report.
-        @type data: dictionnary
+        @param data: the input stream of userdata. This should be a dictionary
+        mapping, keys being the values accessible to your report.
+        @type data: dictionary
         """
 
         newdata = dict(
@@ -405,10 +404,9 @@ class Template(object):
     def render(self, data):
         """render the OpenDocument with the user data
 
-        @param data: the input stream of userdata. This should be a
-        dictionnary mapping, keys being the values accessible to your
-        report.
-        @type data: dictionnary
+        @param data: the input stream of userdata. This should be a dictionary
+        mapping, keys being the values accessible to your report.
+        @type data: dictionary
         """
         for status in self.render_flow(data):
             if not status:

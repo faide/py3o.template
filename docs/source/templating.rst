@@ -2,7 +2,7 @@ Templating with LibreOffice
 ==============================
 
 If you have read the Python code above you have seen that we pushed
-a dictionnary to our template.render() method.
+a dictionary to our template.render() method.
 
 We must now declare the attributes you want to use from those variables in LibreOffice.
 
@@ -64,7 +64,7 @@ You should take care to pick a nice and meaningfull value so that your end-users
 Data Dictionnary
 ~~~~~~~~~~~~~~~~
 
-If you are a developper and want to provide some kind of raw document for your users, it is a good idea to create all the relevent user variables yourself. This is what we call in our jargon creating the data dictionnary.
+If you are a developper and want to provide some kind of raw document for your users, it is a good idea to create all the relevent user variables yourself. This is what we call in our jargon creating the data dictionary.
 
 This is especially important because the variable names (eg: py3o.variable.attribute) are linked to your code. And remember that your users do not have access to the code.
 
