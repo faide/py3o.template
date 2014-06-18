@@ -72,7 +72,7 @@ Contributors
 
 By order of contribution date:
 
-  - Florent Aide
+  - `Florent Aide`_
   - `Emmanuel Cazenave`_
   - `jon1012`_
   - `Eugene Morozov`_
@@ -81,10 +81,10 @@ By order of contribution date:
   - `Sergey Fedoseev`_
   - `Vincent Lhote-Hatakeyama`_
 
-.. _Florent Aide:https://bitbucket.org/faide
-.. _Emmanuel Cazenave:https://bitbucket.org/cazino
-.. _jon1012:https://bitbucket.org/jon1012
-.. _Eugene Morozov:https://bitbucket.org/mojo
-.. _Houzéfa Abbasbay:https://bitbucket.org/houzefa-abba
-.. _Sergey Fedoseev:https://bitbucket.org/sir_sigurd
-.. _Vincent Lhote-Hatakeyama:https://bitbucket.org/vincent_lhote
+.. _Florent Aide: https://bitbucket.org/faide
+.. _Emmanuel Cazenave: https://bitbucket.org/cazino
+.. _jon1012: https://bitbucket.org/jon1012
+.. _Eugene Morozov: https://bitbucket.org/mojo
+.. _Houzéfa Abbasbay: https://bitbucket.org/houzefa-abba
+.. _Sergey Fedoseev: https://bitbucket.org/sir_sigurd
+.. _Vincent Lhote-Hatakeyama: https://bitbucket.org/vincent_lhote
