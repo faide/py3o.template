@@ -8,19 +8,21 @@ merging your datasets with a corresponding templated OpenOffice document.
 
 It is plateform independant and does not require LibreOffice/OpenOffice itself
 to generate an ODF file.
+
 If you want to generate a PDF or any other support output format you will then
 need to have a server with either LibreOffice or OpenOffice and to install
-the `py3o.renderserver`_ on it.
+the `py3o.renderserver`_ on it. We also provide a docker image on
+the `docker hub`_
 
-  .. _py3o.renderserver: https://bitbucket.org/faide/py3o.renderserver/
+If you want to have templating fusion & document convertion in one
+single web service usable from any language with just HTTP/POST you can install
+`py3o.fusion`_ server. Which also exists as a `docker image`_
 
 Full Documentation
 ==================
 
-We `provide a documentation`_ for this package. If anything is not correctly explained, please! create a ticket `in our ticketing system`_
-
-  .. _provide a documentation: http://py3otemplate.readthedocs.org
-  .. _in our ticketing system: https://bitbucket.org/faide/py3o.template/issues?status=new&status=open
+We `provide a documentation`_ for this package. If anything is not correctly
+explained, please! create a ticket `in our ticketing system`_
 
 Example Usage
 =============
@@ -89,3 +91,9 @@ By order of contribution date:
 .. _Torsten Irländer: https://bitbucket.org/ti
 .. _Sergey Fedoseev: https://bitbucket.org/sir_sigurd
 .. _Vincent Lhote-Hatakeyama: https://bitbucket.org/vincent_lhote
+
+.. _py3o.renderserver: https://bitbucket.org/faide/py3o.renderserver/
+.. _provide a documentation: http://py3otemplate.readthedocs.org
+.. _in our ticketing system: https://bitbucket.org/faide/py3o.template/issues?status=new&status=open
+.. _docker hub: https://registry.hub.docker.com/u/xcgd/py3oserver-docker/
+.. _docker image: https://registry.hub.docker.com/u/xcgd/py3o.fusion
