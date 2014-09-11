@@ -96,4 +96,5 @@ By order of contribution date:
 .. _provide a documentation: http://py3otemplate.readthedocs.org
 .. _in our ticketing system: https://bitbucket.org/faide/py3o.template/issues?status=new&status=open
 .. _docker hub: https://registry.hub.docker.com/u/xcgd/py3oserver-docker/
+.. _py3o.fusion: https://bitbucket.org/faide/py3o.fusion
 .. _docker image: https://registry.hub.docker.com/u/xcgd/py3o.fusion
