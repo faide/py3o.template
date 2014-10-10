@@ -185,14 +185,25 @@ class Template(object):
 
         move_siblings(opening_row, closing_row, genshi_node)
 
+    def get_user_variable(self):
+        #TODO: Check if some user fields are stored in other content_trees
+        return [
+            e.get('{%s}name' % e.nsmap.get('text'))
+            for e in self.__get_user_fields(self.content_trees[0])
+        ]
+
+    def __get_user_fields(self, content_tree):
+        field_expr = "//text:user-field-decl[starts-with(@text:name, 'py3o.')]"
+        return content_tree.xpath(
+            field_expr,
+            namespaces=self.namespaces
+        )
+
     def __prepare_userfield_decl(self):
         self.field_info = dict()
-        field_expr = "//text:user-field-decl[starts-with(@text:name, 'py3o.')]"
+
         for content_tree in self.content_trees:
-            for userfield in content_tree.xpath(
-                field_expr,
-                namespaces=self.namespaces
-            ):
+            for userfield in self.__get_user_fields(content_tree):
                 value = userfield.attrib[
                     '{%s}name' % self.namespaces['text']
                 ][5:]
