@@ -29,6 +29,7 @@ setup(
         'lxml',
         'genshi',
         'pyjon.utils',
+        'six',
     ],
     entry_points="""
     # -*- Entry points: -*-

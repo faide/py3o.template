@@ -1,6 +1,6 @@
 import lxml.etree
 import zipfile
-from StringIO import StringIO
+from six import StringIO
 import urllib
 from genshi.template import MarkupTemplate
 from pyjon.utils import get_secure_filename

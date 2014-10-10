@@ -19,5 +19,6 @@ data/*
 storage/*
 .project
 .pydevproject
+.idea
 *.db
 .~*
