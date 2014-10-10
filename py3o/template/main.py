@@ -185,7 +185,11 @@ class Template(object):
 
         move_siblings(opening_row, closing_row, genshi_node)
 
-    def get_user_variable(self):
+    def get_user_variables(self):
+        """a public method to help report engines to introspect
+        a template and find what data it needs and how it will be
+        used
+        returns a list of user variable names"""
         #TODO: Check if some user fields are stored in other content_trees
         return [
             e.get('{%s}name' % e.nsmap.get('text'))
