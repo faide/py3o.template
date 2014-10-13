@@ -1,7 +1,14 @@
 import lxml.etree
 import zipfile
-from six import StringIO
-import urllib
+from io import BytesIO
+
+try:
+    # python 2.x
+    from urllib import unquote
+except ImportError:
+    # python 3.x
+    from urllib.parse import unquote
+
 from genshi.template import MarkupTemplate
 from pyjon.utils import get_secure_filename
 import os
@@ -58,14 +65,11 @@ class Template(object):
         self.infile = zipfile.ZipFile(self.template, 'r')
 
         self.content_trees = [
-            lxml.etree.parse(StringIO(self.infile.read(filename)))
+            lxml.etree.parse(BytesIO(self.infile.read(filename)))
             for filename in self.templated_files
         ]
         self.tree_roots = [tree.getroot() for tree in self.content_trees]
 
-#        self.py3ocontent = lxml.etree.parse(
-#            StringIO(self.infile.read("content.xml")))
-#        self.py3oroot = self.py3ocontent.getroot()
         self.__prepare_namespaces()
 
         self.images = {}
@@ -109,7 +113,7 @@ class Template(object):
                 xpath_expr,
                 namespaces=self.namespaces
             ):
-                py3o_statement = urllib.unquote(
+                py3o_statement = unquote(
                     link.attrib['{%s}href' % self.namespaces['xlink']]
                 )
                 # remove the py3o://
@@ -363,19 +367,24 @@ class Template(object):
     def render_flow(self, data):
         """render the OpenDocument with the user data
 
-        @param data: the input stream of userdata. This should be a dictionary
+        @param data: the input stream of user data. This should be a dictionary
         mapping, keys being the values accessible to your report.
         @type data: dictionary
         """
 
-        newdata = dict(
+        new_data = dict(
             decimal=decimal,
-            format_float=(lambda val: (
-                isinstance(val, decimal.Decimal)
-                or isinstance(val, float)
-            ) and str(val).replace('.', ',') or val),
-            format_percentage=(lambda val:
-                ("%0.2f %%" % val).replace('.', ',')
+            format_float=(
+                lambda val: (
+                    isinstance(
+                        val, decimal.Decimal
+                    ) or isinstance(
+                        val, float
+                    )
+                ) and str(val).replace('.', ',') or val
+            ),
+            format_percentage=(
+                lambda val: ("%0.2f %%" % val).replace('.', ',')
             )
         )
 
@@ -396,9 +405,6 @@ class Template(object):
         self.__replace_image_links()
         self.__add_images_to_manifest()
 
-        # out = open("content.xml", "w+")
-        # out.write(lxml.etree.tostring(self.py3ocontent.getroot()))
-        # out.close()
         self.output_streams = list()
         for fnum, content_tree in enumerate(self.content_trees):
             template = MarkupTemplate(
@@ -407,9 +413,15 @@ class Template(object):
             # then we need to render the genshi template itself by
             # providing the data to genshi
 
-            self.output_streams.append((
-                self.templated_files[fnum],
-                template.generate(**dict(data.items() + newdata.items())))
+            template_dict = {}
+            template_dict.update(data.items())
+            template_dict.update(new_data.items())
+
+            self.output_streams.append(
+                (
+                    self.templated_files[fnum],
+                    template.generate(**template_dict)
+                )
             )
 
         # then reconstruct a new ODT document with the generated content
@@ -438,7 +450,7 @@ class Template(object):
         @type data: string
         """
 
-        f = file(path, 'rb')
+        f = open(path, 'rb')
         self.set_image_data(identifier, f.read())
         f.close()
 
@@ -491,7 +503,7 @@ class Template(object):
                 out.writestr(info_zip, self.infile.read(info_zip.filename))
 
         # Save images in the "Pictures" sub-directory of the archive.
-        for identifier, data in self.images.iteritems():
+        for identifier, data in self.images.items():
             out.writestr(PY3O_IMAGE_PREFIX + identifier, data)
 
         # close the zipfile before leaving

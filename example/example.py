@@ -19,7 +19,8 @@ item1.Amount = '12345.35'
 item1.InvoiceRef = '#1234'
 items.append(item1)
 
-for i in xrange(1000):
+# if you are using python 2.x you should use xrange
+for i in range(1000):
     item = Item()
     item.val1 = 'Item%s Value1' % i
     item.val2 = 'Item%s Value2' % i
