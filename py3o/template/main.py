@@ -122,7 +122,7 @@ class Template(object):
         """ Public method to help report engine to find all instructions
         """
         return [
-            e.get('{%s}href' % e.nsmap.get('xlink'))
+            e.xpath("text:span", namespaces=self.namespaces)[0].text
             for e in self.__get_instructions(self.content_trees[0])
         ]
 
