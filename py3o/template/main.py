@@ -50,7 +50,7 @@ def move_siblings(start, end, new_):
 
     # get all siblings
     for node in start.itersiblings():
-        if not node is end:
+        if node is not end:
             # and stuff them in our new node
             new_.append(node)
         else:
@@ -62,6 +62,7 @@ def move_siblings(start, end, new_):
     # remove ending boundary
     old_.remove(end)
 
+
 def get_instructions(content_tree, namespaces):
     # find all links that have a py3o
     xpath_expr = "//text:a[starts-with(@xlink:href, 'py3o://')]"
@@ -69,6 +70,7 @@ def get_instructions(content_tree, namespaces):
         xpath_expr,
         namespaces=namespaces
     )
+
 
 def get_user_fields(content_tree, namespaces):
     field_expr = "//text:user-field-decl[starts-with(@text:name, 'py3o.')]"
@@ -176,7 +178,7 @@ class Template(object):
         to be ready for Genshi replacement
         """
         # OLD open office version
-        if not link.text is None:
+        if link.text is not None:
             if not link.text == py3o_base:
                 msg = "url and text do not match in '%s'" % link.text
                 raise ValueError(msg)
@@ -237,7 +239,7 @@ class Template(object):
         a template and find what data it needs and how it will be
         used
         returns a list of user variable names"""
-        #TODO: Check if some user fields are stored in other content_trees
+        # TODO: Check if some user fields are stored in other content_trees
         return [
             e.get('{%s}name' % e.nsmap.get('text'))
             for e in get_user_fields(self.content_trees[0], self.namespaces)
@@ -247,7 +249,7 @@ class Template(object):
         self.field_info = dict()
 
         for content_tree in self.content_trees:
-            for userfield in get_user_fields(content_tree):
+            for userfield in get_user_fields(content_tree, self.namespaces):
                 value = userfield.attrib[
                     '{%s}name' % self.namespaces['text']
                 ][5:]
@@ -330,8 +332,11 @@ class Template(object):
                 attribs['{%s}strip' % GENSHI_URI] = 'True'
                 attribs['{%s}content' % GENSHI_URI] = value
 
-                genshi_node = lxml.etree.Element('span',
-                        attrib=attribs, nsmap={'py': GENSHI_URI})
+                genshi_node = lxml.etree.Element(
+                    'span',
+                    attrib=attribs,
+                    nsmap={'py': GENSHI_URI}
+                )
 
                 if userfield.tail:
                     genshi_node.tail = userfield.tail
