@@ -28,8 +28,7 @@ setup(
         'setuptools',
         'lxml',
         'genshi',
-        'pyjon.utils',
-        'six',
+        'pyjon.utils > 0.6',
     ],
     entry_points="""
     # -*- Entry points: -*-
