@@ -105,3 +105,25 @@ class TestHelpers(unittest.TestCase):
             'py3o.document.total',
         ]
         assert set(vars) == set(expected_vars)
+
+    def test_get_user_instructions(self):
+        source_odt_filename = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_example_template.odt'
+        )
+        outfilename = get_secure_filename()
+
+        template = Template(source_odt_filename, outfilename)
+
+        vars = template.get_user_instructions()
+
+        expected_vars = [
+            'for="line in items"',
+            '/for',
+            'for="item in items"',
+            'if="item.InvoiceRef==\'#1234\'"',
+            '/if',
+            '/for',
+        ]
+        print vars
+        assert set(vars) == set(expected_vars)

@@ -62,6 +62,21 @@ def move_siblings(start, end, new_):
     # remove ending boundary
     old_.remove(end)
 
+def get_instructions(content_tree, namespaces):
+    # find all links that have a py3o
+    xpath_expr = "//text:a[starts-with(@xlink:href, 'py3o://')]"
+    return content_tree.xpath(
+        xpath_expr,
+        namespaces=namespaces
+    )
+
+def get_user_fields(content_tree, namespaces):
+    field_expr = "//text:user-field-decl[starts-with(@text:name, 'py3o.')]"
+    return content_tree.xpath(
+        field_expr,
+        namespaces=namespaces
+    )
+
 
 class Template(object):
     templated_files = ['content.xml', 'styles.xml', 'META-INF/manifest.xml']
@@ -118,22 +133,17 @@ class Template(object):
         # declare our own namespace
         self.namespaces['py3o'] = PY3O_URI
 
-    def get_instructions(self):
+    def get_user_instructions(self):
         """ Public method to help report engine to find all instructions
         """
-        return [
-            e.xpath("text:span", namespaces=self.namespaces)[0].text
-            for e in self.__get_instructions(self.content_trees[0])
-        ]
-
-
-    def __get_instructions(self, content_tree):
-        # find all links that have a py3o
-        xpath_expr = "//text:a[starts-with(@xlink:href, 'py3o://')]"
-        return content_tree.xpath(
-            xpath_expr,
-            namespaces=self.namespaces
-        )
+        res = []
+        for e in get_instructions(self.content_trees[0], self.namespaces):
+            childs = e.getchildren()
+            if childs:
+                res.append(childs.text)
+            else:
+                res.append(e.text)
+        return res
 
     def __handle_instructions(self):
 
@@ -142,7 +152,7 @@ class Template(object):
         closing_tags = dict()
 
         for content_tree in self.content_trees:
-            for link in self.__get_instructions(content_tree):
+            for link in get_instructions(content_tree, self.namespaces):
                 py3o_statement = unquote(
                     link.attrib['{%s}href' % self.namespaces['xlink']]
                 )
@@ -230,21 +240,14 @@ class Template(object):
         #TODO: Check if some user fields are stored in other content_trees
         return [
             e.get('{%s}name' % e.nsmap.get('text'))
-            for e in self.__get_user_fields(self.content_trees[0])
+            for e in get_user_fields(self.content_trees[0], self.namespaces)
         ]
-
-    def __get_user_fields(self, content_tree):
-        field_expr = "//text:user-field-decl[starts-with(@text:name, 'py3o.')]"
-        return content_tree.xpath(
-            field_expr,
-            namespaces=self.namespaces
-        )
 
     def __prepare_userfield_decl(self):
         self.field_info = dict()
 
         for content_tree in self.content_trees:
-            for userfield in self.__get_user_fields(content_tree):
+            for userfield in get_user_fields(content_tree):
                 value = userfield.attrib[
                     '{%s}name' % self.namespaces['text']
                 ][5:]
