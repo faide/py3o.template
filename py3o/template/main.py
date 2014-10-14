@@ -118,19 +118,31 @@ class Template(object):
         # declare our own namespace
         self.namespaces['py3o'] = PY3O_URI
 
-    def __handle_instructions(self):
+    def get_instructions(self):
+        """ Public method to help report engine to find all instructions
+        """
+        return [
+            e.get('{%s}href' % e.nsmap.get('xlink'))
+            for e in self.__get_instructions(self.content_trees[0])
+        ]
+
+
+    def __get_instructions(self, content_tree):
         # find all links that have a py3o
         xpath_expr = "//text:a[starts-with(@xlink:href, 'py3o://')]"
+        return content_tree.xpath(
+            xpath_expr,
+            namespaces=self.namespaces
+        )
+
+    def __handle_instructions(self):
 
         opened_starts = list()
         starting_tags = list()
         closing_tags = dict()
 
         for content_tree in self.content_trees:
-            for link in content_tree.xpath(
-                xpath_expr,
-                namespaces=self.namespaces
-            ):
+            for link in self.__get_instructions(content_tree):
                 py3o_statement = unquote(
                     link.attrib['{%s}href' % self.namespaces['xlink']]
                 )
