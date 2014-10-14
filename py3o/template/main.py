@@ -385,24 +385,21 @@ class Template(object):
                     }
                 )
 
-    def render_flow(self, data):
-        """render the OpenDocument with the user data
-
-        @param data: the input stream of user data. This should be a dictionary
-        mapping, keys being the values accessible to your report.
-        @type data: dictionary
+    def render_tree(self, data):
+        """prepare the flows without saving to file
+        this method has been decoupled from render_flow to allow better
+        unit testing
         """
-
         new_data = dict(
             decimal=decimal,
             format_float=(
                 lambda val: (
-                    isinstance(
-                        val, decimal.Decimal
-                    ) or isinstance(
-                        val, float
-                    )
-                ) and str(val).replace('.', ',') or val
+                                isinstance(
+                                    val, decimal.Decimal
+                                ) or isinstance(
+                                    val, float
+                                )
+                            ) and str(val).replace('.', ',') or val
             ),
             format_percentage=(
                 lambda val: ("%0.2f %%" % val).replace('.', ',')
@@ -444,6 +441,16 @@ class Template(object):
                     template.generate(**template_dict)
                 )
             )
+
+    def render_flow(self, data):
+        """render the OpenDocument with the user data
+
+        @param data: the input stream of user data. This should be a dictionary
+        mapping, keys being the values accessible to your report.
+        @type data: dictionary
+        """
+
+        self.render_tree(data)
 
         # then reconstruct a new ODT document with the generated content
         for status in self.__save_output():
