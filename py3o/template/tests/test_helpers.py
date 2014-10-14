@@ -5,7 +5,6 @@ from py3o.template.main import move_siblings
 from py3o.template.main import Template
 import lxml.etree
 import pkg_resources
-from io import BytesIO
 from pyjon.utils import get_secure_filename
 
 
