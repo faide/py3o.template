@@ -104,7 +104,7 @@ class Template(object):
             xlink="urn:xlink",
             svg="urn:svg",
             manifest="urn:manifest",
-            )
+        )
 
         # copy namespaces from original docs
         for tree_root in self.tree_roots:
@@ -406,12 +406,12 @@ class Template(object):
             decimal=decimal,
             format_float=(
                 lambda val: (
-                                isinstance(
-                                    val, decimal.Decimal
-                                ) or isinstance(
-                                    val, float
-                                )
-                            ) and str(val).replace('.', ',') or val
+                    isinstance(
+                        val, decimal.Decimal
+                    ) or isinstance(
+                        val, float
+                    )
+                ) and str(val).replace('.', ',') or val
             ),
             format_percentage=(
                 lambda val: ("%0.2f %%" % val).replace('.', ',')
