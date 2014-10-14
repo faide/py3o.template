@@ -202,8 +202,11 @@ class Template(object):
         attribs['{%s}strip' % GENSHI_URI] = 'True'
         attribs['{%s}%s' % (GENSHI_URI, instruction)] = instruction_value
 
-        genshi_node = lxml.etree.Element('span',
-                attrib=attribs, nsmap={'py': GENSHI_URI})
+        genshi_node = lxml.etree.Element(
+            'span',
+            attrib=attribs,
+            nsmap={'py': GENSHI_URI},
+        )
 
         move_siblings(opening_row, closing_row, genshi_node)
 
