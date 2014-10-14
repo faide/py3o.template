@@ -24,6 +24,24 @@ PY3O_IMAGE_PREFIX = 'Pictures/py3o-'
 
 
 def move_siblings(start, end, new_):
+    """a helper function that will replace a start/end node pair
+    by a new containing element, effectively moving all in-between siblings
+    This is particularly helpful to replace for /for loops in tables
+    with the content resulting from the iteration
+
+    This function call returns None. The parent xml tree is modified in place
+
+    @param start: the starting xml node
+    @type start: lxml.etree.Element
+
+    @param end: the ending xml node
+    @type end: lxml.etree.Element
+
+    @param new_: the new xml element that will replace the start/end pair
+    @type new_: lxlm.etree.Element
+
+    @returns: None
+    """
     old_ = start.getparent()
 
     # copy any tail we find
