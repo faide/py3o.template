@@ -8,7 +8,7 @@ import pkg_resources
 from pyjon.utils import get_secure_filename
 
 
-class TestMoveSiblings(unittest.TestCase):
+class TestHelpers(unittest.TestCase):
 
     def tearDown(self):
         pass
