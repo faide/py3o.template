@@ -65,7 +65,7 @@ def move_siblings(start, end, new_):
     old_.remove(end)
 
 
-def get_list_transformer():
+def get_list_transformer(namespaces):
     """this function returns a transformer to
      find all list elements and recompute their xml:id.
     Because if we duplicate lists we create invalid XML.
@@ -75,7 +75,11 @@ def get_list_transformer():
      document wih an XML parser. LibreOffice will fix those ids itself
      silently, but lxml.etree.parse will bork on such duplicated lists
     """
-    return Transformer('//list[namespace-uri()="%s"]' % 'urn:oasis:names:tc:opendocument:xmlns:text:1.0').attr(
+    return Transformer(
+        '//list[namespace-uri()="%s"]' % namespaces.get(
+            'text'
+        )
+    ).attr(
         '{%s}id' % 'http://www.w3.org/XML/1998/namespace',
         lambda *args: "list{}".format(uuid4().hex)
     )
@@ -550,7 +554,7 @@ class Template(object):
                     self.templated_files.index(info_zip.filename)
                 ]
 
-                transformer = get_list_transformer()
+                transformer = get_list_transformer(self.namespaces)
                 remapped_stream = output_stream | transformer
 
                 # write the whole stream to it
