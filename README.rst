@@ -85,6 +85,19 @@ directory.
     data = dict(items=items, document=document)
     t.render(data)
 
+Changelog
+=========
+
+0.7 Oct. 15 2014
+~~~~~~~~~~~~~~~~
+
+  - Added Python3 support
+  - Fixed a problem with validity of output in case the template contains
+    a text:list inside a for loop
+  - Added new public methods to help report servers introspect the template
+    data dictionary
+  - Added real unit tests (96% coverage ATM, way to go test team!)
+
 Contributors
 ============
 
@@ -98,6 +111,7 @@ By order of contribution date:
   - `Torsten Irländer`_
   - `Sergey Fedoseev`_
   - `Vincent Lhote-Hatakeyama`_
+  - `Anael Lorimier`_
 
 .. _Florent Aide: https://bitbucket.org/faide
 .. _Emmanuel Cazenave: https://bitbucket.org/cazino
@@ -107,6 +121,7 @@ By order of contribution date:
 .. _Torsten Irländer: https://bitbucket.org/ti
 .. _Sergey Fedoseev: https://bitbucket.org/sir_sigurd
 .. _Vincent Lhote-Hatakeyama: https://bitbucket.org/vincent_lhote
+.. _Anael Lorimier: https://bitbucket.org/alorimier
 
 .. _py3o.renderserver: https://bitbucket.org/faide/py3o.renderserver/
 .. _provide a documentation: http://py3otemplate.readthedocs.org
