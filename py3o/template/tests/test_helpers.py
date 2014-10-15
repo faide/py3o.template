@@ -125,5 +125,5 @@ class TestHelpers(unittest.TestCase):
             '/if',
             '/for',
         ]
-        print vars
+        print(vars)
         assert set(vars) == set(expected_vars)
