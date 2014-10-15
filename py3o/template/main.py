@@ -1,6 +1,7 @@
 import lxml.etree
 import zipfile
 from io import BytesIO
+from uuid import uuid4
 
 try:
     # python 2.x
@@ -10,6 +11,7 @@ except ImportError:
     from urllib.parse import unquote
 
 from genshi.template import MarkupTemplate
+from genshi.filters.transform import Transformer
 from pyjon.utils import get_secure_filename
 import os
 import decimal
@@ -50,7 +52,7 @@ def move_siblings(start, end, new_):
 
     # get all siblings
     for node in start.itersiblings():
-        if node is not end:
+        if not node is end:
             # and stuff them in our new node
             new_.append(node)
         else:
@@ -61,6 +63,22 @@ def move_siblings(start, end, new_):
     old_.replace(start, new_)
     # remove ending boundary
     old_.remove(end)
+
+
+def get_list_transformer():
+    """this function returns a transformer to
+     find all list elements and recompute their xml:id.
+    Because if we duplicate lists we create invalid XML.
+    Each list must have its own xml:id
+
+    This is important if you want to be able to reopen the produced
+     document wih an XML parser. LibreOffice will fix those ids itself
+     silently, but lxml.etree.parse will bork on such duplicated lists
+    """
+    return Transformer('//list[namespace-uri()="%s"]' % 'urn:oasis:names:tc:opendocument:xmlns:text:1.0').attr(
+        '{%s}id' % 'http://www.w3.org/XML/1998/namespace',
+        lambda *args: "list{}".format(uuid4().hex)
+    )
 
 
 def get_instructions(content_tree, namespaces):
@@ -178,7 +196,7 @@ class Template(object):
         to be ready for Genshi replacement
         """
         # OLD open office version
-        if link.text is not None:
+        if not link.text is None:
             if not link.text == py3o_base:
                 msg = "url and text do not match in '%s'" % link.text
                 raise ValueError(msg)
@@ -189,6 +207,7 @@ class Template(object):
                 msg = "url and text do not match in '%s'" % link.text
                 raise ValueError(msg)
 
+        # find out if the instruction is inside a table
         if link.getparent().getparent().tag == (
             "{%s}table-cell" % self.namespaces['table']
         ):
@@ -494,8 +513,8 @@ class Template(object):
         template by setting "py3o.[identifier]" as the name of that image.
         @type identifier: string
 
-        @param path: Image path.
-        @type data: string
+        @param path: Image path on the file system
+        @type path: string
         """
 
         f = open(path, 'rb')
@@ -531,8 +550,11 @@ class Template(object):
                     self.templated_files.index(info_zip.filename)
                 ]
 
+                transformer = get_list_transformer()
+                remapped_stream = output_stream | transformer
+
                 # write the whole stream to it
-                for chunk in output_stream.serialize():
+                for chunk in remapped_stream.serialize():
                     streamout.write(chunk.encode('utf-8'))
                     yield True
 
