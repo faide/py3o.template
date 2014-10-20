@@ -95,7 +95,7 @@ class TestHelpers(unittest.TestCase):
 
         template = Template(source_odt_filename, outfilename)
 
-        vars = template.get_user_variables()
+        user_vars = template.get_user_variables()
 
         expected_vars = [
             'py3o.line.val1',
@@ -106,7 +106,7 @@ class TestHelpers(unittest.TestCase):
             'py3o.item.InvoiceRef',
             'py3o.document.total',
         ]
-        assert set(vars) == set(expected_vars)
+        assert set(user_vars) == set(expected_vars)
 
     def test_get_user_instructions(self):
         source_odt_filename = pkg_resources.resource_filename(
@@ -117,7 +117,7 @@ class TestHelpers(unittest.TestCase):
 
         template = Template(source_odt_filename, outfilename)
 
-        vars = template.get_user_instructions()
+        user_instructions = template.get_user_instructions()
 
         expected_vars = [
             'for="line in items"',
@@ -127,5 +127,5 @@ class TestHelpers(unittest.TestCase):
             '/if',
             '/for',
         ]
-        print(vars)
-        assert set(vars) == set(expected_vars)
+        print(user_instructions)
+        assert set(user_instructions) == set(expected_vars)
