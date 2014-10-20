@@ -26,6 +26,10 @@ PY3O_URI = 'http://py3o.org/'
 PY3O_IMAGE_PREFIX = 'Pictures/py3o-'
 
 
+class TemplateException(Exception):
+    pass
+
+
 def move_siblings(start, end, new_):
     """a helper function that will replace a start/end node pair
     by a new containing element, effectively moving all in-between siblings
@@ -51,19 +55,19 @@ def move_siblings(start, end, new_):
     if start.tail:
         new_.text = start.tail
 
+    # copy any child we find
+    for child in start:
+        new_.append(child)
+
     # get all siblings
     for node in start.itersiblings():
-        if not node is end:
-            # and stuff them in our new node
-            new_.append(node)
-        else:
+        new_.append(node)
+        if node is end:
             # if this is already the end boundary, then we are done
             break
 
     # replace start boundary with new node
     old_.replace(start, new_)
-    # remove ending boundary
-    old_.remove(end)
 
 
 def get_list_transformer(namespaces):
@@ -186,11 +190,15 @@ class Template(object):
                 py3o_base = py3o_statement[7:]
 
                 if not py3o_base.startswith("/"):
-                    opened_starts.append((content_tree, link))
+                    opened_starts.append(link)
                     starting_tags.append((content_tree, link, py3o_base))
 
                 else:
-                    closing_tags[id(opened_starts.pop()[1])] = (
+                    if not opened_starts:
+                        raise TemplateException(
+                            "No open instruction for %s" % py3o_base)
+
+                    closing_tags[id(opened_starts.pop())] = (
                         content_tree, link
                     )
 
@@ -214,11 +222,12 @@ class Template(object):
                 raise ValueError(msg)
 
         # find out if the instruction is inside a table
-        if link.getparent().getparent().tag == (
+        parent = link.getparent()
+        if parent.getparent() is not None and parent.getparent().tag == (
             "{%s}table-cell" % self.namespaces['table']
         ):
             # we are in a table
-            opening_paragraph = link.getparent()
+            opening_paragraph = parent
             opening_cell = opening_paragraph.getparent()
 
             # same for closing
@@ -233,9 +242,9 @@ class Template(object):
                 opening_row = opening_cell.getparent()
                 closing_row = closing_cell.getparent()
 
-        elif link.getparent().tag == "{%s}p" % self.namespaces['text']:
+        elif parent.tag == "{%s}p" % self.namespaces['text']:
             # we are in a text paragraph
-            opening_row = link.getparent()
+            opening_row = parent
             closing_row = closing_link.getparent()
 
         else:
@@ -256,6 +265,10 @@ class Template(object):
             attrib=attribs,
             nsmap={'py': GENSHI_URI},
         )
+
+        # remove links from tags
+        opening_row.remove(link)
+        closing_row.remove(closing_link)
 
         move_siblings(opening_row, closing_row, genshi_node)
 
