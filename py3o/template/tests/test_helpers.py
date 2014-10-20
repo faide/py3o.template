@@ -2,13 +2,14 @@
 __author__ = 'faide'
 
 import unittest
+import os
 
 import lxml.etree
 import pkg_resources
 
 from pyjon.utils import get_secure_filename
 
-from py3o.template.main import move_siblings, Template
+from py3o.template.main import move_siblings, detect_keep_boundary, Template
 
 
 class TestHelpers(unittest.TestCase):
@@ -17,7 +18,15 @@ class TestHelpers(unittest.TestCase):
         pass
 
     def setUp(self):
-        pass
+        template_name = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_example_template.odt'
+        )
+
+        outname = get_secure_filename()
+
+        self.reference_template = Template(template_name, outname)
+        os.unlink(outname)
 
     def test_move_1(self):
         """test that siblings are properly moved without keeping boundaries"""
@@ -99,7 +108,11 @@ class TestHelpers(unittest.TestCase):
 
         new_ = lxml.etree.Element('finishcontainer')
 
-        move_siblings(start, end, new_, keep_boundaries=True)
+        move_siblings(
+            start, end, new_,
+            keep_start_boundary=True,
+            keep_end_boundary=True,
+        )
 
         result_s = lxml.etree.tostring(
             test_template_three,
@@ -132,7 +145,11 @@ class TestHelpers(unittest.TestCase):
 
         new_ = lxml.etree.Element('finishcontainer')
 
-        move_siblings(start, end, new_, keep_boundaries=True)
+        move_siblings(
+            start, end, new_,
+            keep_start_boundary=True,
+            keep_end_boundary=True,
+        )
 
         result_s = lxml.etree.tostring(
             test_template_four,
@@ -200,3 +217,47 @@ class TestHelpers(unittest.TestCase):
         ]
         print(user_instructions)
         assert set(user_instructions) == set(expected_vars)
+
+    def test_detect_boundary_false(self):
+        """boundary detection should say no!!"""
+
+        source_xml_filename = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/keepboundary_detection_false.xml'
+        )
+
+        test_xml = lxml.etree.parse(source_xml_filename)
+        starts, ends = self.reference_template.handle_instructions(
+            [test_xml], self.reference_template.namespaces
+        )
+        for start, base in starts:
+            end = ends[id(start)]
+            keep_start, keep_end = detect_keep_boundary(
+                start, end,  self.reference_template.namespaces
+            )
+            assert keep_start is False
+            assert keep_end is False
+
+    def test_detect_boundary_true(self):
+        """boundary detection should say yes!!"""
+
+        source_xml_filename = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/keepboundary_detection_true.xml'
+        )
+
+        test_xml = lxml.etree.parse(source_xml_filename)
+        starts, ends = self.reference_template.handle_instructions(
+            [test_xml], self.reference_template.namespaces
+        )
+        for index, (start, base) in enumerate(starts):
+            end = ends[id(start)]
+            keep_start, keep_end = detect_keep_boundary(
+                start, end,  self.reference_template.namespaces
+            )
+            if index == 0:
+                assert keep_start is False
+                assert keep_end is True
+
+            else:
+                assert False, "We should find one single link"

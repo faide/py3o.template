@@ -37,7 +37,31 @@ class TemplateException(ValueError):
     pass
 
 
-def move_siblings(start, end, new_, keep_boundaries=False):
+def detect_keep_boundary(start, end, namespaces):
+    """a helper to inspect a link and see if we should keep the link boundary
+    """
+    result_start, result_end = False, False
+    parent_start = start.getparent()
+    parent_end = end.getparent()
+
+    if parent_start.tag == "{%s}p" % namespaces['text']:
+        # more than one child in the containing paragraph ?
+        # we keep the boundary
+        result_start = len(parent_start.getchildren()) > 1
+
+    if parent_end.tag == "{%s}p" % namespaces['text']:
+        # more than one child in the containing paragraph ?
+        # we keep the boundary
+        result_end = len(parent_end.getchildren()) > 1
+
+    return result_start, result_end
+
+
+def move_siblings(
+        start, end, new_,
+        keep_start_boundary=False,
+        keep_end_boundary=False
+):
     """a helper function that will replace a start/end node pair
     by a new containing element, effectively moving all in-between siblings
     This is particularly helpful to replace for /for loops in tables
@@ -54,14 +78,18 @@ def move_siblings(start, end, new_, keep_boundaries=False):
     @param new_: the new xml element that will replace the start/end pair
     @type new_: lxlm.etree.Element
 
-    @param keep_boundaries: Flag to let the function know if it copies your
-    start and end nodes to the new_ node or not, Default value is False
-    @type keep_boundaries: bool
+    @param keep_start_boundary: Flag to let the function know if it copies
+    your start tag to the new_ node or not, Default value is False
+    @type keep_start_boundary: bool
+
+    @param keep_end_boundary: Flag to let the function know if it copies
+    your end tag to the new_ node or not, Default value is False
+    @type keep_end_boundary: bool
 
     @returns: None
     """
     old_ = start.getparent()
-    if keep_boundaries:
+    if keep_start_boundary:
         new_.append(copy(start))
 
     else:
@@ -76,7 +104,7 @@ def move_siblings(start, end, new_, keep_boundaries=False):
 
         elif node is end:
             # if this is already the end boundary, then we are done
-            if keep_boundaries:
+            if keep_end_boundary:
                 new_.append(copy(node))
 
             break
@@ -198,16 +226,17 @@ class Template(object):
                 res.append(e.text)
         return res
 
-    def __handle_instructions(self):
+    @staticmethod
+    def handle_instructions(content_trees, namespaces):
 
         opened_starts = list()
         starting_tags = list()
         closing_tags = dict()
 
-        for content_tree in self.content_trees:
-            for link in get_instructions(content_tree, self.namespaces):
+        for content_tree in content_trees:
+            for link in get_instructions(content_tree, namespaces):
                 py3o_statement = unquote(
-                    link.attrib['{%s}href' % self.namespaces['xlink']]
+                    link.attrib['{%s}href' % namespaces['xlink']]
                 )
                 # remove the py3o://
                 py3o_base = py3o_statement[7:]
@@ -244,7 +273,9 @@ class Template(object):
 
         # find out if the instruction is inside a table
         parent = link.getparent()
-        keepboundaries = False
+        keep_start_boundary = False
+        keep_end_boundary = False
+
         if parent.getparent() is not None and parent.getparent().tag == (
             "{%s}table-cell" % self.namespaces['table']
         ):
@@ -266,7 +297,9 @@ class Template(object):
 
         elif parent.tag == "{%s}p" % self.namespaces['text']:
             # if we are using text we want to keep start/end nodes
-            keepboundaries = True
+            keep_start_boundary, keep_end_boundary = detect_keep_boundary(
+                link, closing_link, self.namespaces
+            )
             # we are in a text paragraph
             opening_row = parent
             closing_row = closing_link.getparent()
@@ -296,7 +329,8 @@ class Template(object):
 
         move_siblings(
             opening_row, closing_row, genshi_node,
-            keep_boundaries=keepboundaries
+            keep_start_boundary=keep_start_boundary,
+            keep_end_boundary=keep_end_boundary,
         )
 
     def get_user_variables(self):
@@ -493,7 +527,10 @@ class Template(object):
 
         # first we need to transform the py3o template into a valid
         # Genshi template.
-        starting_tags, closing_tags = self.__handle_instructions()
+        starting_tags, closing_tags = self.handle_instructions(
+            self.content_trees,
+            self.namespaces
+        )
         for link, py3o_base in starting_tags:
             self.__handle_link(
                 link,
