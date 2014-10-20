@@ -1,8 +1,10 @@
 <xml>
     <mystruct>
         <finishcontainer>trailing text
+        <startchild1/>
         <sib1/>
         <sib2/>
+        <end/>
         </finishcontainer>
     </mystruct>
 </xml>

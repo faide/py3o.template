@@ -1,15 +1,17 @@
 __author__ = 'faide'
 
+import os
 import unittest
-from py3o.template.main import move_siblings
-from py3o.template.main import Template
+import zipfile
+
 import lxml.etree
 import pkg_resources
-from pyjon.utils import get_secure_filename
-import zipfile
+
 from io import BytesIO
-import os
-from lxml.etree import XMLSyntaxError
+
+from pyjon.utils import get_secure_filename
+
+from py3o.template.main import Template
 
 
 class TestTemplate(unittest.TestCase):
@@ -47,11 +49,11 @@ class TestTemplate(unittest.TestCase):
 
         outodt = zipfile.ZipFile(outname, 'r')
         try:
-            content_trees = [
+            [
                 lxml.etree.parse(BytesIO(outodt.read(filename)))
                 for filename in template.templated_files
             ]
-        except XMLSyntaxError as e:
+        except lxml.etree.XMLSyntaxError as e:
             error = True
             print(
                 "List is were not deduplicated->{}".format(e)
@@ -60,4 +62,3 @@ class TestTemplate(unittest.TestCase):
         # remove end file
         os.unlink(outname)
         assert error is False
-
