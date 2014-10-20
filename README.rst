@@ -112,6 +112,7 @@ By order of contribution date:
   - `Sergey Fedoseev`_
   - `Vincent Lhote-Hatakeyama`_
   - `Anael Lorimier`_
+  - `Björn Ricks`_
 
 .. _Florent Aide: https://bitbucket.org/faide
 .. _Emmanuel Cazenave: https://bitbucket.org/cazino
@@ -122,6 +123,7 @@ By order of contribution date:
 .. _Sergey Fedoseev: https://bitbucket.org/sir_sigurd
 .. _Vincent Lhote-Hatakeyama: https://bitbucket.org/vincent_lhote
 .. _Anael Lorimier: https://bitbucket.org/alorimier
+.. _Björn Ricks: https://bitbucket.org/bjoernricks
 
 .. _py3o.renderserver: https://bitbucket.org/faide/py3o.renderserver/
 .. _provide a documentation: http://py3otemplate.readthedocs.org
