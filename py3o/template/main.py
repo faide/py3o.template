@@ -131,6 +131,7 @@ class Template(object):
         self.__prepare_namespaces()
 
         self.images = {}
+        self.output_streams = []
 
     def __prepare_namespaces(self):
         """create proper namespaces for our document
@@ -467,7 +468,6 @@ class Template(object):
         self.__replace_image_links()
         self.__add_images_to_manifest()
 
-        self.output_streams = list()
         for fnum, content_tree in enumerate(self.content_trees):
             template = MarkupTemplate(
                 lxml.etree.tostring(content_tree.getroot())
