@@ -1,11 +1,14 @@
 __author__ = 'faide'
 
 import unittest
-from py3o.template.main import move_siblings
-from py3o.template.main import Template
+
 import lxml.etree
 import pkg_resources
+
 from pyjon.utils import get_secure_filename
+
+from py3o.template.main import move_siblings
+from py3o.template.main import Template
 
 
 class TestHelpers(unittest.TestCase):
