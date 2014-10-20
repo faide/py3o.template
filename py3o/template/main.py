@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import lxml.etree
 import zipfile
 from io import BytesIO
