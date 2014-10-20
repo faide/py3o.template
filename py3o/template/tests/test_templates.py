@@ -49,7 +49,7 @@ class TestTemplate(unittest.TestCase):
 
         outodt = zipfile.ZipFile(outname, 'r')
         try:
-            content_trees = [
+            [
                 lxml.etree.parse(BytesIO(outodt.read(filename)))
                 for filename in template.templated_files
             ]
