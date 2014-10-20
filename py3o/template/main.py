@@ -228,6 +228,7 @@ class Template(object):
 
         # find out if the instruction is inside a table
         parent = link.getparent()
+        closing_parent = closing_link.getparent()
         if parent.getparent() is not None and parent.getparent().tag == (
             "{%s}table-cell" % self.namespaces['table']
         ):
@@ -236,7 +237,7 @@ class Template(object):
             opening_cell = opening_paragraph.getparent()
 
             # same for closing
-            closing_paragraph = closing_link.getparent()
+            closing_paragraph = closing_parent
             closing_cell = closing_paragraph.getparent()
 
             if opening_cell == closing_cell:
@@ -250,7 +251,7 @@ class Template(object):
         elif parent.tag == "{%s}p" % self.namespaces['text']:
             # we are in a text paragraph
             opening_row = parent
-            closing_row = closing_link.getparent()
+            closing_row = closing_parent
 
         else:
             raise NotImplementedError(
@@ -272,8 +273,8 @@ class Template(object):
         )
 
         # remove links from tags
-        opening_row.remove(link)
-        closing_row.remove(closing_link)
+        parent.remove(link)
+        closing_parent.remove(closing_link)
 
         move_siblings(opening_row, closing_row, genshi_node)
 
