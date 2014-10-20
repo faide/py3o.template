@@ -221,7 +221,7 @@ class Template(object):
 
         # find out if the instruction is inside a table
         parent = link.getparent()
-        if parent.getparent().tag == (
+        if parent.getparent() is not None and parent.getparent().tag == (
             "{%s}table-cell" % self.namespaces['table']
         ):
             # we are in a table
