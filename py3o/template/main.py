@@ -30,7 +30,10 @@ PY3O_URI = 'http://py3o.org/'
 PY3O_IMAGE_PREFIX = 'Pictures/py3o-'
 
 
-class TemplateException(Exception):
+class TemplateException(ValueError):
+    """some client code is used to catching ValueErrors, let's keep the old
+    codebase hapy
+    """
     pass
 
 
@@ -210,13 +213,13 @@ class Template(object):
         if not link.text is None:
             if not link.text == py3o_base:
                 msg = "url and text do not match in '%s'" % link.text
-                raise ValueError(msg)
+                raise TemplateException(msg)
 
         # new open office version
         else:
             if not link[0].text == py3o_base:
                 msg = "url and text do not match in '%s'" % link.text
-                raise ValueError(msg)
+                raise TemplateException(msg)
 
         # find out if the instruction is inside a table
         parent = link.getparent()
@@ -398,7 +401,7 @@ class Template(object):
                     '{%s}name' % self.namespaces['draw']
                 ][5:]
                 if image_id not in self.images:
-                    raise ValueError(
+                    raise TemplateException(
                         "Can't find data for the image named 'py3o.%s'; make "
                         "sure it has been added with the set_image_path or "
                         "set_image_data methods."
@@ -519,7 +522,7 @@ class Template(object):
         """
         for status in self.render_flow(data):
             if not status:
-                raise ValueError("unknown error")
+                raise TemplateException("unknown template error")
 
     def set_image_path(self, identifier, path):
         """Set data for an image mentioned in the template.
