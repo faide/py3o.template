@@ -264,6 +264,10 @@ class Template(object):
             nsmap={'py': GENSHI_URI},
         )
 
+        # remove links from tags
+        opening_row.remove(link)
+        closing_row.remove(closing_link)
+
         move_siblings(opening_row, closing_row, genshi_node)
 
     def get_user_variables(self):
