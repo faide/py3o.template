@@ -37,7 +37,7 @@ class TemplateException(ValueError):
     pass
 
 
-def move_siblings(start, end, new_):
+def move_siblings(start, end, new_, keep_boundaries=False):
     """a helper function that will replace a start/end node pair
     by a new containing element, effectively moving all in-between siblings
     This is particularly helpful to replace for /for loops in tables
@@ -54,20 +54,38 @@ def move_siblings(start, end, new_):
     @param new_: the new xml element that will replace the start/end pair
     @type new_: lxlm.etree.Element
 
+    @param keep_boundaries: Flag to let the function know if it copies your
+    start and end nodes to the new_ node or not, Default value is False
+    @type keep_boundaries: bool
+
     @returns: None
     """
     old_ = start.getparent()
-    new_.append(copy(start))
+    if keep_boundaries:
+        new_.append(copy(start))
+
+    else:
+        if start.tail:
+            # copy the existing tail as text
+            new_.text = start.tail
 
     # get all siblings
     for node in start.itersiblings():
-        new_.append(node)
-        if node is end:
+        if node is not end:
+            new_.append(node)
+
+        elif node is end:
             # if this is already the end boundary, then we are done
+            if keep_boundaries:
+                new_.append(copy(node))
+
             break
 
     # replace start boundary with new node
     old_.replace(start, new_)
+
+    # remove ending boundary we already copied it if needed
+    old_.remove(end)
 
 
 def get_list_transformer(namespaces):
@@ -228,6 +246,7 @@ class Template(object):
 
         # find out if the instruction is inside a table
         parent = link.getparent()
+        keepboundaries = False
         if parent.getparent() is not None and parent.getparent().tag == (
             "{%s}table-cell" % self.namespaces['table']
         ):
@@ -248,6 +267,8 @@ class Template(object):
                 closing_row = closing_cell.getparent()
 
         elif parent.tag == "{%s}p" % self.namespaces['text']:
+            # if we are using text we want to keep start/end nodes
+            keepboundaries = True
             # we are in a text paragraph
             opening_row = parent
             closing_row = closing_link.getparent()
@@ -272,10 +293,13 @@ class Template(object):
         )
 
         # remove links from tags
-        opening_row.remove(link)
-        closing_row.remove(closing_link)
+        link.getparent().remove(link)
+        closing_link.getparent().remove(closing_link)
 
-        move_siblings(opening_row, closing_row, genshi_node)
+        move_siblings(
+            opening_row, closing_row, genshi_node,
+            keep_boundaries=keepboundaries
+        )
 
     def get_user_variables(self):
         """a public method to help report engines to introspect
