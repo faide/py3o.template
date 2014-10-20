@@ -106,19 +106,37 @@ class TestTemplate(unittest.TestCase):
 
         outodt = zipfile.ZipFile(outname, 'r')
         try:
-            [
+            content_list = [
                 lxml.etree.parse(BytesIO(outodt.read(filename)))
                 for filename in template.templated_files
             ]
         except lxml.etree.XMLSyntaxError as e:
             error = True
             print(
-                "List is were not deduplicated->{}".format(e)
+                "List was not deduplicated->{}".format(e)
             )
 
         # remove end file
         os.unlink(outname)
+
         assert error is False
+
+        # first content is the content.xml
+        content = content_list[0]
+        list_expr = '//text:list'
+        list_items = content.xpath(
+            list_expr,
+            namespaces=template.namespaces
+        )
+        ids = []
+        for list_item in list_items:
+            ids.append(
+                list_item.get(
+                    '{}id'.format("{http://www.w3.org/XML/1998/namespace}")
+                )
+            )
+        assert ids, "this list of ids should not be empty"
+        assert len(ids) == len(set(ids)), "all ids should have been unique"
 
     def test_missing_opening(self):
         """test orphaned /for raises a TemplateException"""
