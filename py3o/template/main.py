@@ -60,17 +60,13 @@ def move_siblings(start, end, new_):
 
     # get all siblings
     for node in start.itersiblings():
-        if not node is end:
-            # and stuff them in our new node
-            new_.append(node)
-        else:
+        new_.append(node)
+        if node is end:
             # if this is already the end boundary, then we are done
             break
 
     # replace start boundary with new node
     old_.replace(start, new_)
-    # remove ending boundary
-    old_.remove(end)
 
 
 def get_list_transformer(namespaces):
