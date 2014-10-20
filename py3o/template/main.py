@@ -1,6 +1,11 @@
 # -*- encoding: utf-8 -*-
+import decimal
+import os
+
 import lxml.etree
 import zipfile
+
+from copy import copy
 from io import BytesIO
 from uuid import uuid4
 
@@ -13,9 +18,8 @@ except ImportError:
 
 from genshi.template import MarkupTemplate
 from genshi.filters.transform import Transformer
+
 from pyjon.utils import get_secure_filename
-import os
-import decimal
 
 GENSHI_URI = 'http://genshi.edgewall.org/'
 PY3O_URI = 'http://py3o.org/'
@@ -50,14 +54,7 @@ def move_siblings(start, end, new_):
     @returns: None
     """
     old_ = start.getparent()
-
-    # copy any tail we find
-    if start.tail:
-        new_.text = start.tail
-
-    # copy any child we find
-    for child in start:
-        new_.append(child)
+    new_.append(copy(start))
 
     # get all siblings
     for node in start.itersiblings():
