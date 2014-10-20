@@ -15,7 +15,7 @@ from nose.tools import raises
 
 from pyjon.utils import get_secure_filename
 
-from py3o.template.main import Template, TemplateException
+from py3o.template.main import Template, TemplateException, XML_NS
 
 
 class TestTemplate(unittest.TestCase):
@@ -132,7 +132,7 @@ class TestTemplate(unittest.TestCase):
         for list_item in list_items:
             ids.append(
                 list_item.get(
-                    '{}id'.format("{http://www.w3.org/XML/1998/namespace}")
+                    '{}id'.format(XML_NS)
                 )
             )
         assert ids, "this list of ids should not be empty"

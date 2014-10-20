@@ -21,6 +21,9 @@ from genshi.filters.transform import Transformer
 
 from pyjon.utils import get_secure_filename
 
+# expressed in clark notation: http://www.jclark.com/xml/xmlns.htm
+XML_NS = "{http://www.w3.org/XML/1998/namespace}"
+
 GENSHI_URI = 'http://genshi.edgewall.org/'
 PY3O_URI = 'http://py3o.org/'
 
@@ -134,7 +137,7 @@ def get_list_transformer(namespaces):
             'text'
         )
     ).attr(
-        '{%s}id' % 'http://www.w3.org/XML/1998/namespace',
+        '{}id'.format(XML_NS),
         lambda *args: "list{}".format(uuid4().hex)
     )
 
