@@ -34,7 +34,10 @@ class TemplateException(ValueError):
     """some client code is used to catching ValueErrors, let's keep the old
     codebase hapy
     """
-    pass
+    def __init__(self, message):
+        """define the __init__ to handle message... for python3's sake
+        """
+        self.message = message
 
 
 def detect_keep_boundary(start, end, namespaces):

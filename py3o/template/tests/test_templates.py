@@ -5,16 +5,17 @@ import os
 import unittest
 import zipfile
 import traceback
-import sys
 
 import lxml.etree
 import pkg_resources
 
 from io import BytesIO
 
+from nose.tools import raises
+
 from pyjon.utils import get_secure_filename
 
-from py3o.template.main import Template
+from py3o.template.main import Template, TemplateException
 
 
 class TestTemplate(unittest.TestCase):
@@ -118,3 +119,40 @@ class TestTemplate(unittest.TestCase):
         # remove end file
         os.unlink(outname)
         assert error is False
+
+    def test_missing_opening(self):
+        """test orphaned /for raises a TemplateException"""
+        template_name = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_missing_open_template.odt'
+        )
+        outname = get_secure_filename()
+        try:
+            template = Template(template_name, outname)
+
+        finally:
+            os.remove(outname)
+
+        class Item(object):
+            def __init__(self, val):
+                self.val = val
+        data_dict = {
+            "items": [Item(1), Item(2), Item(3), Item(4)]
+        }
+
+        template.set_image_path('logo', pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/images/new_logo.png'
+        ))
+        # this will raise a TemplateException... or the test will fail
+        error_occured = False
+        try:
+            template.render(data_dict)
+
+        except TemplateException as e:
+            error_occured = True
+            # make sure this is the correct TemplateException that pops
+            assert e.message == "No open instruction for /for"
+
+        # and make sure we raised
+        assert error_occured is True
