@@ -184,11 +184,11 @@ class Template(object):
                 py3o_base = py3o_statement[7:]
 
                 if not py3o_base.startswith("/"):
-                    opened_starts.append((content_tree, link))
+                    opened_starts.append(link)
                     starting_tags.append((content_tree, link, py3o_base))
 
                 else:
-                    closing_tags[id(opened_starts.pop()[1])] = (
+                    closing_tags[id(opened_starts.pop())] = (
                         content_tree, link
                     )
 
