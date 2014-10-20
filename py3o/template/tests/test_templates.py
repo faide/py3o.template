@@ -62,4 +62,3 @@ class TestTemplate(unittest.TestCase):
         # remove end file
         os.unlink(outname)
         assert error is False
-
