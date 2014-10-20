@@ -220,11 +220,12 @@ class Template(object):
                 raise ValueError(msg)
 
         # find out if the instruction is inside a table
-        if link.getparent().getparent().tag == (
+        parent = link.getparent()
+        if parent.getparent().tag == (
             "{%s}table-cell" % self.namespaces['table']
         ):
             # we are in a table
-            opening_paragraph = link.getparent()
+            opening_paragraph = parent
             opening_cell = opening_paragraph.getparent()
 
             # same for closing
@@ -239,9 +240,9 @@ class Template(object):
                 opening_row = opening_cell.getparent()
                 closing_row = closing_cell.getparent()
 
-        elif link.getparent().tag == "{%s}p" % self.namespaces['text']:
+        elif parent.tag == "{%s}p" % self.namespaces['text']:
             # we are in a text paragraph
-            opening_row = link.getparent()
+            opening_row = parent
             closing_row = closing_link.getparent()
 
         else:
