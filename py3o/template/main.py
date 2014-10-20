@@ -110,7 +110,7 @@ def get_user_fields(content_tree, namespaces):
 class Template(object):
     templated_files = ['content.xml', 'styles.xml', 'META-INF/manifest.xml']
 
-    def __init__(self, template, outfile):
+    def __init__(self, template, outfile, ignore_undefined_variables=False):
         """A template object exposes the API to render it to an OpenOffice
         document.
 
@@ -121,6 +121,10 @@ class Template(object):
 
         @param outfile: the desired file name for the resulting ODT document
         @type outfile: a string representing the full filename for output
+
+        @param ignore_undefined_variables: Not defined variables are replaced
+        with an empty string during template rendering if True
+        @type ignore_undefined_variables: boolean. Default is False
         """
         self.template = template
         self.outputfilename = outfile
@@ -136,6 +140,7 @@ class Template(object):
 
         self.images = {}
         self.output_streams = []
+        self.ignore_undefined_variables = ignore_undefined_variables
 
     def __prepare_namespaces(self):
         """create proper namespaces for our document
@@ -482,9 +487,12 @@ class Template(object):
         self.__add_images_to_manifest()
 
         for fnum, content_tree in enumerate(self.content_trees):
-            template = MarkupTemplate(
-                lxml.etree.tostring(content_tree.getroot())
-            )
+            content = lxml.etree.tostring(content_tree.getroot())
+            if self.ignore_undefined_variables:
+                template = MarkupTemplate(content, lookup='lenient')
+            else:
+                template = MarkupTemplate(content)
+
             # then we need to render the genshi template itself by
             # providing the data to genshi
 
