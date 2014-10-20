@@ -54,6 +54,10 @@ def move_siblings(start, end, new_):
     if start.tail:
         new_.text = start.tail
 
+    # copy any child we find
+    for child in start:
+        new_.append(child)
+
     # get all siblings
     for node in start.itersiblings():
         if not node is end:
