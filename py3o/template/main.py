@@ -570,7 +570,7 @@ class Template(object):
                 # write the full file to archive
                 out.write(streamout.name, fname)
 
-                # remove tempfile
+                # remove temp file
                 os.unlink(streamout.name)
 
             else:
