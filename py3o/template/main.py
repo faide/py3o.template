@@ -25,6 +25,10 @@ PY3O_URI = 'http://py3o.org/'
 PY3O_IMAGE_PREFIX = 'Pictures/py3o-'
 
 
+class TemplateException(Exception):
+    pass
+
+
 def move_siblings(start, end, new_):
     """a helper function that will replace a start/end node pair
     by a new containing element, effectively moving all in-between siblings
@@ -188,6 +192,10 @@ class Template(object):
                     starting_tags.append((content_tree, link, py3o_base))
 
                 else:
+                    if not opened_starts:
+                        raise TemplateException(
+                            "No open instruction for %s" % py3o_base)
+
                     closing_tags[id(opened_starts.pop())] = (
                         content_tree, link
                     )
