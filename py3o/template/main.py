@@ -214,20 +214,18 @@ class Template(object):
 
                 if not py3o_base.startswith("/"):
                     opened_starts.append(link)
-                    starting_tags.append((content_tree, link, py3o_base))
+                    starting_tags.append((link, py3o_base))
 
                 else:
                     if not opened_starts:
                         raise TemplateException(
                             "No open instruction for %s" % py3o_base)
 
-                    closing_tags[id(opened_starts.pop())] = (
-                        content_tree, link
-                    )
+                    closing_tags[id(opened_starts.pop())] = link
 
         return starting_tags, closing_tags
 
-    def __handle_link(self, content_tree, link, py3o_base, closing_link):
+    def __handle_link(self, link, py3o_base, closing_link):
         """transform a py3o link into a proper Genshi statement
         rebase a py3o link at a proper place in the tree
         to be ready for Genshi replacement
@@ -496,12 +494,11 @@ class Template(object):
         # first we need to transform the py3o template into a valid
         # Genshi template.
         starting_tags, closing_tags = self.__handle_instructions()
-        for content_tree, link, py3o_base in starting_tags:
+        for link, py3o_base in starting_tags:
             self.__handle_link(
-                content_tree,
                 link,
                 py3o_base,
-                closing_tags[id(link)][1]
+                closing_tags[id(link)]
             )
 
         self.__prepare_userfield_decl()
