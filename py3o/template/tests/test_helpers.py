@@ -261,3 +261,98 @@ class TestHelpers(unittest.TestCase):
 
             else:
                 assert False, "We should find one single link"
+
+    def test_move_siblings_1(self):
+        template_xml = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/move_siblings.xml'
+        )
+        test_xml = lxml.etree.parse(template_xml)
+        starts, ends = self.reference_template.handle_instructions(
+            [test_xml], self.reference_template.namespaces
+        )
+
+        assert len(starts) == 1
+        assert len(ends) == 1
+
+        start, _ = starts[0]
+        end = ends[id(start)]
+
+        keep_start, keep_end = detect_keep_boundary(
+            start, end,  self.reference_template.namespaces
+        )
+
+        assert keep_start is True
+        assert keep_end is False
+
+        new_ = lxml.etree.Element('finishcontainer')
+
+        start_parent = start.getparent()
+        end_parent = end.getparent()
+
+        start.getparent().remove(start)
+        end.getparent().remove(end)
+
+        move_siblings(
+            start_parent, end_parent, new_,
+            keep_start_boundary=keep_start,
+            keep_end_boundary=keep_end,
+        )
+
+        result_a = lxml.etree.tostring(
+            test_xml,
+            pretty_print=True,
+        ).decode('utf-8')
+
+        result_e = open(
+            pkg_resources.resource_filename(
+                'py3o.template',
+                'tests/templates/move_siblings_result_1.xml'
+            )
+        ).read()
+
+        result_a = result_a.replace("\n", "").replace(" ", "")
+        result_e = result_e.replace("\n", "").replace(" ", "")
+
+        assert result_a == result_e
+
+    def test_move_siblings_2(self):
+        template_xml = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/move_siblings.xml'
+        )
+        test_xml = lxml.etree.parse(template_xml)
+        starts, ends = self.reference_template.handle_instructions(
+            [test_xml], self.reference_template.namespaces
+        )
+
+        assert len(starts) == 1
+        assert len(ends) == 1
+
+        start, base = starts[0]
+        end = ends[id(start)]
+
+        keep_start, keep_end = detect_keep_boundary(
+            start, end,  self.reference_template.namespaces
+        )
+
+        assert keep_start is True
+        assert keep_end is False
+
+        self.reference_template.handle_link(start, base, end)
+        result_a = lxml.etree.tostring(
+            test_xml,
+            pretty_print=True,
+        ).decode('utf-8')
+
+        result_e = open(
+            pkg_resources.resource_filename(
+                'py3o.template',
+                'tests/templates/move_siblings_result_2.xml'
+            )
+        ).read()
+
+        result_a = result_a.replace("\n", "").replace(" ", "")
+        result_e = result_e.replace("\n", "").replace(" ", "")
+
+        assert result_a == result_e
