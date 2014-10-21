@@ -260,7 +260,7 @@ class Template(object):
 
         return starting_tags, closing_tags
 
-    def __handle_link(self, link, py3o_base, closing_link):
+    def handle_link(self, link, py3o_base, closing_link):
         """transform a py3o link into a proper Genshi statement
         rebase a py3o link at a proper place in the tree
         to be ready for Genshi replacement
@@ -540,7 +540,7 @@ class Template(object):
             self.namespaces
         )
         for link, py3o_base in starting_tags:
-            self.__handle_link(
+            self.handle_link(
                 link,
                 py3o_base,
                 closing_tags[id(link)]
