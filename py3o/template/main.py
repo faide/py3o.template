@@ -266,16 +266,18 @@ class Template(object):
         to be ready for Genshi replacement
         """
         # OLD open office version
-        if not link.text is None:
+        if link.text is not None and link.text.strip():
             if not link.text == py3o_base:
                 msg = "url and text do not match in '%s'" % link.text
                 raise TemplateException(msg)
 
         # new open office version
-        else:
+        elif len(link):
             if not link[0].text == py3o_base:
                 msg = "url and text do not match in '%s'" % link.text
                 raise TemplateException(msg)
+        else:
+            raise TemplateException("Link text not found")
 
         # find out if the instruction is inside a table
         parent = link.getparent()
