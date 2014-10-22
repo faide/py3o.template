@@ -78,7 +78,7 @@ class TestHelpers(unittest.TestCase):
             pretty_print=True,
         ).decode('utf-8')
 
-        print(type(result_s))
+        #print(type(result_s))
 
         expected_result = open(
             pkg_resources.resource_filename(
@@ -92,7 +92,7 @@ class TestHelpers(unittest.TestCase):
 
         result_s = result_s.replace('\n', '').replace(' ', '').strip()
 
-        print(result_s)
+        #print(result_s)
 
         assert result_s == expected_result
 
@@ -156,7 +156,7 @@ class TestHelpers(unittest.TestCase):
             pretty_print=True,
         ).decode('utf-8')
 
-        print(type(result_s))
+        #print(type(result_s))
 
         expected_result = open(
             pkg_resources.resource_filename(
@@ -170,7 +170,7 @@ class TestHelpers(unittest.TestCase):
 
         result_s = result_s.replace('\n', '').replace(' ', '').strip()
 
-        print(result_s)
+        #print(result_s)
 
         assert result_s == expected_result
 
@@ -186,13 +186,13 @@ class TestHelpers(unittest.TestCase):
         user_vars = template.get_user_variables()
 
         expected_vars = [
-            'py3o.line.val1',
-            'py3o.line.val2',
-            'py3o.line.val3',
-            'py3o.item.Amount',
-            'py3o.item.Currency',
-            'py3o.item.InvoiceRef',
-            'py3o.document.total',
+            'line.val1',
+            'line.val2',
+            'line.val3',
+            'item.Amount',
+            'item.Currency',
+            'item.InvoiceRef',
+            'document.total',
         ]
         assert set(user_vars) == set(expected_vars)
 
@@ -215,7 +215,7 @@ class TestHelpers(unittest.TestCase):
             '/if',
             '/for',
         ]
-        print(user_instructions)
+        #print(user_instructions)
         assert set(user_instructions) == set(expected_vars)
 
     def test_detect_boundary_false(self):
@@ -261,3 +261,19 @@ class TestHelpers(unittest.TestCase):
 
             else:
                 assert False, "We should find one single link"
+
+    def test_get_user_instructions_mapping(self):
+        """ Test the get_user_fields_mapping
+        This should return a dict representation of all the variable inside the template,
+        including the variable declared inside for-loops
+        """
+
+        source_odt_filename = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_example_template.odt'
+        )
+        outfilename = get_secure_filename()
+
+        template = Template(source_odt_filename, outfilename)
+        user_fields_mapping = template.get_user_instructions_mapping()
+        assert user_fields_mapping == {'item': 'items', 'line': 'items'}

@@ -27,7 +27,7 @@ class ForDecoder(object):
         if isinstance(target, ast.Name):
             return target.id
         if isinstance(target, ast.Tuple):
-            return [name.id for name in target.elts]
+            return tuple(name.id for name in target.elts)
 
     def get_iterables(self):
         it = self.ast.iter
@@ -46,7 +46,13 @@ class Decoder(object):
         self.vars = None
         self.iters = None
 
+    def decode_py3o_instruction(self, instruction):
+        # We convert py3o for loops into valid python for loop
+        inst_str = "for " + instruction.split('"')[1] + ": pass\n"
+        return self.decode(inst_str)
+
     def decode(self, instruction):
+        # We attempt to compile 'instruction' and decode it
         self.instruction = instruction
         module = ast.parse(instruction)
         bodies = module.body
@@ -54,11 +60,12 @@ class Decoder(object):
             return
 
         self.body = bodies[0]
+        #TODO: Manage other instructions
         if isinstance(self.body, ast.For):
             obj = ForDecoder(self.body)
             self.vars = obj.get_variables()
-
             self.iters = obj.get_iterables()
+            return {self.vars: self.iters}
         else:
             raise NotImplementedError()
 

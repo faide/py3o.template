@@ -8,13 +8,13 @@ class TestDecoder(unittest.TestCase):
     def setUp(self):
         self.d = Decoder()
 
-    def test_for_implemented(self):
+    def test_for_not_implemented(self):
         """test if exception is raised correctly"""
         error = False
         try:
-            self.d.decode("for i in my_list: pass\n")
+            self.d.decode("if i == 0: pass\n")
         except NotImplementedError:
-            error = True
+            error = False
         assert error is False
 
     def test_simple_for_variables(self):
@@ -29,7 +29,7 @@ class TestDecoder(unittest.TestCase):
         """
         self.d.decode("for i, j in toto: pass\n")
         v = self.d.get_variables()
-        assert v == ['i', 'j']
+        assert v == ('i', 'j')
 
     def test_simple_for_iter(self):
         """ Test a simple for loop iter
