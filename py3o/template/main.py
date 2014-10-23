@@ -280,22 +280,24 @@ class Template(object):
 
         return starting_tags, closing_tags
 
-    def __handle_link(self, link, py3o_base, closing_link):
+    def handle_link(self, link, py3o_base, closing_link):
         """transform a py3o link into a proper Genshi statement
         rebase a py3o link at a proper place in the tree
         to be ready for Genshi replacement
         """
         # OLD open office version
-        if not link.text is None:
+        if link.text is not None and link.text.strip():
             if not link.text == py3o_base:
                 msg = "url and text do not match in '%s'" % link.text
                 raise TemplateException(msg)
 
         # new open office version
-        else:
+        elif len(link):
             if not link[0].text == py3o_base:
                 msg = "url and text do not match in '%s'" % link.text
                 raise TemplateException(msg)
+        else:
+            raise TemplateException("Link text not found")
 
         # find out if the instruction is inside a table
         parent = link.getparent()
@@ -558,7 +560,7 @@ class Template(object):
             self.namespaces
         )
         for link, py3o_base in starting_tags:
-            self.__handle_link(
+            self.handle_link(
                 link,
                 py3o_base,
                 closing_tags[id(link)]
