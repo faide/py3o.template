@@ -9,12 +9,7 @@ from copy import copy
 from io import BytesIO
 from uuid import uuid4
 
-try:
-    # python 2.x
-    from urllib import unquote
-except ImportError:
-    # python 3.x
-    from urllib.parse import unquote
+from six.moves import urllib
 
 from genshi.template import MarkupTemplate
 from genshi.filters.transform import Transformer
@@ -241,7 +236,7 @@ class Template(object):
 
         for content_tree in content_trees:
             for link in get_instructions(content_tree, namespaces):
-                py3o_statement = unquote(
+                py3o_statement = urllib.parse.unquote(
                     link.attrib['{%s}href' % namespaces['xlink']]
                 )
                 # remove the py3o://
