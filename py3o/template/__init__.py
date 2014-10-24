@@ -4,3 +4,4 @@ documents into real OpenOffice documents with all your data merged-in.
 """
 
 from py3o.template.main import Template
+from py3o.template.decoder import Decoder

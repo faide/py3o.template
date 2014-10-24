@@ -16,6 +16,8 @@ from genshi.filters.transform import Transformer
 
 from pyjon.utils import get_secure_filename
 
+from py3o.template.decoder import Decoder
+
 # expressed in clark notation: http://www.jclark.com/xml/xmlns.htm
 XML_NS = "{http://www.w3.org/XML/1998/namespace}"
 
@@ -219,12 +221,30 @@ class Template(object):
         """ Public method to help report engine to find all instructions
         """
         res = []
+        # TODO: Check if instructions can be stored in other content_trees
         for e in get_instructions(self.content_trees[0], self.namespaces):
             childs = e.getchildren()
             if childs:
                 res.append(childs.text)
             else:
                 res.append(e.text)
+        return res
+
+    def get_user_instructions_mapping(self):
+        """ Public method to get the mapping of all
+        variables defined in the template
+        """
+        user_vars = self.get_user_variables()
+        instructions = self.get_user_instructions()
+
+        # For now we just want for loops
+        instructions = [i for i in instructions if i.startswith('for')]
+
+        # Now we call the decoder to get variable mapping from instructions
+        d = Decoder()
+        res = {}
+        for i in instructions:
+            res.update(d.decode_py3o_instruction(i))
         return res
 
     @staticmethod
@@ -338,10 +358,10 @@ class Template(object):
         """a public method to help report engines to introspect
         a template and find what data it needs and how it will be
         used
-        returns a list of user variable names"""
+        returns a list of user variable names without starting 'py3o.'"""
         # TODO: Check if some user fields are stored in other content_trees
         return [
-            e.get('{%s}name' % e.nsmap.get('text'))
+            e.get('{%s}name' % e.nsmap.get('text'))[5:]
             for e in get_user_fields(self.content_trees[0], self.namespaces)
         ]
 
