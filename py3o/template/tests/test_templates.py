@@ -11,8 +11,6 @@ import pkg_resources
 
 from io import BytesIO
 
-from nose.tools import raises
-
 from pyjon.utils import get_secure_filename
 
 from py3o.template.main import Template, TemplateException, XML_NS
@@ -174,3 +172,55 @@ class TestTemplate(unittest.TestCase):
 
         # and make sure we raised
         assert error_occured is True
+
+    def test_render_apply_style(self):
+        template_name = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_style1_template.odt'
+        )
+
+        outname = get_secure_filename()
+
+        template = Template(template_name, outname)
+        template.set_image_path('logo', pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/images/new_logo.png'
+        ))
+
+        class Item(object):
+            pass
+
+        items = list()
+
+        item1 = Item()
+        item1.val1 = 'Item1 Value1'
+        item1.val2 = 'Item1 Value2'
+        item1.val3 = 'Item1 Value3'
+        item1.Currency = 'EUR'
+        item1.Amount = 12345.35
+        item1.InvoiceRef = '#1234'
+
+        items.append(item1)
+
+        document = Item()
+        document.total = '9999999999999.999'
+
+        data = dict(items=items, document=document)
+        template.render(data)
+
+        # reuse the template engine just to open our odt file content...
+        tempout = get_secure_filename()
+        t2 = Template(outname, tempout)
+        os.unlink(tempout)
+
+        result_content = t2.content_trees[0]
+        expr = "//text:p[contains(text(), 'Invoice')]"
+        paragraphs = result_content.xpath(
+            expr,
+            namespaces=t2.namespaces
+        )
+        assert len(paragraphs) == 1, "Only one paragraph should have been found"
+        p = paragraphs[0]
+        result_text = p.text
+        print result_text
+        assert result_text == "Invoice #1234 for a total of 12345,35 EUR"
