@@ -11,6 +11,7 @@ import pkg_resources
 
 from io import BytesIO
 
+from genshi.template import TemplateError
 from pyjon.utils import get_secure_filename
 
 from py3o.template.main import Template, TemplateException, XML_NS
@@ -224,3 +225,113 @@ class TestTemplate(unittest.TestCase):
         result_text = p.text
         print(result_text)
         assert result_text == "Invoice #1234 for a total of 12345,35 EUR"
+
+    def test_ignore_undefined_variables_logo(self):
+
+        template_name = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_logo.odt'
+        )
+
+        outname = get_secure_filename()
+
+        template = Template(template_name, outname)
+
+        data = {}
+
+        error = True
+        try:
+            template.render(data)
+            print("Error: template contains a logo variable that must be "
+                  "replaced")
+        except ValueError:
+            error = False
+
+        assert error is False
+
+        template = Template(template_name, outname,
+                            ignore_undefined_variables=True)
+
+        error = False
+        try:
+            template.render(data)
+        except:
+            traceback.print_exc()
+            error = True
+
+        assert error is False
+
+    def test_ignore_undefined_variables_1(self):
+
+        template_name = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_undefined_variables_1.odt'
+        )
+
+        outname = get_secure_filename()
+
+        template = Template(template_name, outname)
+
+        data = {}
+
+        error = True
+        try:
+            template.render(data)
+            print("Error: template contains variables that must be "
+                  "replaced")
+        except TemplateError:
+            error = False
+
+        assert error is False
+
+        template = Template(template_name, outname,
+                            ignore_undefined_variables=True)
+
+        error = False
+        try:
+            template.render(data)
+        except:
+            traceback.print_exc()
+            error = True
+
+        assert error is False
+
+    def test_ignore_undefined_variables_2(self):
+        """
+        Test ignore undefined variables for template with dotted variables like
+        py3o.document.value
+        """
+
+        template_name = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_undefined_variables_2.odt'
+        )
+
+        outname = get_secure_filename()
+
+        template = Template(template_name, outname)
+
+        data = {}
+
+        error = True
+        try:
+            template.render(data)
+            print("Error: template contains variables that must be "
+                  "replaced")
+        except TemplateError:
+            error = False
+
+        assert error is False
+
+        template = Template(template_name, outname,
+                            ignore_undefined_variables=True)
+
+        error = True
+        try:
+            template.render(data)
+            print("Error: template contains dotted variables that must be "
+                  "replaced")
+        except TemplateError:
+            error = False
+
+        assert error is False
