@@ -346,7 +346,6 @@ class Template(object):
             nsmap={'py': GENSHI_URI},
         )
 
-        # remove links from tags
         link.getparent().remove(link)
         closing_link.getparent().remove(closing_link)
 
@@ -575,6 +574,14 @@ class Template(object):
             self.content_trees,
             self.namespaces
         )
+        parents = [tag[0].getparent() for tag in starting_tags]
+        linknum = len(parents)
+        parentnum = len(set(parents))
+        if not linknum == parentnum:
+            raise TemplateException(
+                "Every py3o link instruction should be on its own line"
+            )
+
         for link, py3o_base in starting_tags:
             self.handle_link(
                 link,

@@ -5,6 +5,7 @@ import os
 import unittest
 import zipfile
 import traceback
+import copy
 
 import lxml.etree
 import pkg_resources
@@ -335,3 +336,59 @@ class TestTemplate(unittest.TestCase):
             error = False
 
         assert error is False
+
+    def test_invalid_template_1(self):
+        """a template should not try to define a /for and a for on the same
+        paragraph
+        """
+
+        template_name = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_example_invalid_template.odt'
+        )
+
+        outname = get_secure_filename()
+
+        template = Template(template_name, outname)
+
+        class Item(object):
+            pass
+
+        items = list()
+
+        item1 = Item()
+        item1.val1 = 'Item1 Value1'
+        item1.val2 = 'Item1 Value2'
+        item1.val3 = 'Item1 Value3'
+        item1.Currency = 'EUR'
+        item1.Amount = '12345.35'
+        item1.InvoiceRef = '#1234'
+        items.append(item1)
+
+        # if you are using python 2.x you should use xrange
+        for i in range(1000):
+            item = Item()
+            item.val1 = 'Item%s Value1' % i
+            item.val2 = 'Item%s Value2' % i
+            item.val3 = 'Item%s Value3' % i
+            item.Currency = 'EUR'
+            item.Amount = '6666.77'
+            item.InvoiceRef = 'Reference #%04d' % i
+            items.append(item)
+
+        document = Item()
+        document.total = '9999999999999.999'
+
+        data = dict(
+            items=items,
+            items2=copy.copy(items),
+            document=document
+        )
+
+        error = False
+        try:
+            template.render(data)
+        except TemplateException:
+            error = True
+
+        assert error is True, "This template should have been refused"
