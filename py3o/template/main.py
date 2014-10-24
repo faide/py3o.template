@@ -349,17 +349,28 @@ class Template(object):
         self.field_info = dict()
 
         for content_tree in self.content_trees:
+            # here we gather the fields info in one pass to be able to avoid
+            # doing the same operation multiple times.
             for userfield in get_user_fields(content_tree, self.namespaces):
+
                 value = userfield.attrib[
                     '{%s}name' % self.namespaces['text']
                 ][5:]
+
                 value_type = userfield.attrib.get(
                     '{%s}value-type' % self.namespaces['office'],
                     'string'
                 )
 
-                self.field_info[value] = dict(name=value,
-                                              value_type=value_type)
+                value_datastyle_name = userfield.attrib.get(
+                    '{%s}data-style-name' % self.namespaces['style'],
+                )
+
+                self.field_info[value] = {
+                    "name": value,
+                    "value_type": value_type,
+                    'value_datastyle_name': value_datastyle_name,
+                }
 
     def __prepare_usertexts(self):
         """Replace user-type text fields that start with "py3o." with genshi
@@ -378,55 +389,55 @@ class Template(object):
                 value = userfield.attrib[
                     '{%s}name' % self.namespaces['text']
                 ][5:]
-                # value_type = userfield.attrib.get(
-                #     '{%s}value-type' % self.namespaces['office'],
-                #     'string'
-                # )
                 value_type = self.field_info[value]['value_type']
 
                 # we try to override global var type with local settings
                 value_type_attr = '{%s}value-type' % self.namespaces['office']
                 rec = 0
-                npar = parent
+                parent_node = parent
 
                 # special case for float which has a value info on top level
                 # overriding local value
                 found_node = False
                 while rec <= 5:
-                    if npar is None:
+                    if parent_node is None:
                         break
 
-                    if value_type_attr in npar.attrib:
-                        value_type = npar.attrib[value_type_attr]
+                    # find an ancestor with an  office:value-type attribute
+                    # this is the case when you are inside a table
+                    if value_type_attr in parent_node.attrib:
+                        value_type = parent_node.attrib[value_type_attr]
                         found_node = True
                         break
 
-                    npar = npar.getparent()
+                    rec += 1
+                    parent_node = parent_node.getparent()
 
                 if value_type == 'float':
                     value_attr = '{%s}value' % self.namespaces['office']
                     rec = 0
 
                     if found_node:
-                        npar.attrib[value_attr] = "${%s}" % value
+                        parent_node.attrib[value_attr] = "${%s}" % value
                     else:
-                        npar = userfield
+                        parent_node = userfield
                         while rec <= 7:
-                            if npar is None:
+                            if parent_node is None:
                                 break
 
-                            if value_attr in npar.attrib:
-                                npar.attrib[value_attr] = "${%s}" % value
+                            if value_attr in parent_node.attrib:
+                                parent_node.attrib[value_attr] = "${%s}" % value
                                 break
 
-                            npar = npar.getparent()
+                            rec += 1
+                            parent_node = parent_node.getparent()
 
                     value = "format_float(%s)" % value
 
                 if value_type == 'percentage':
-                    del npar.attrib[value_attr]
+                    del parent_node.attrib[value_attr]
                     value = "format_percentage(%s)" % value
-                    npar.attrib[value_type_attr] = "string"
+                    parent_node.attrib[value_type_attr] = "string"
 
                 attribs = dict()
                 attribs['{%s}strip' % GENSHI_URI] = 'True'
@@ -510,6 +521,13 @@ class Template(object):
         this method has been decoupled from render_flow to allow better
         unit testing
         """
+        # TODO: find a way to make this localization aware...
+        # because ATM it formats texts using French style numbers...
+        # best way would be to let the user inject its own vars...
+        # but this would not work on fusion servers...
+        # so we must find a way to localize this a bit... or remove it and
+        # consider our caller must pre - render its variables to the desired
+        # locale...?
         new_data = dict(
             decimal=decimal,
             format_float=(
