@@ -490,12 +490,15 @@ class Template(object):
                     '{%s}name' % self.namespaces['draw']
                 ][5:]
                 if image_id not in self.images:
-                    raise TemplateException(
-                        "Can't find data for the image named 'py3o.%s'; make "
-                        "sure it has been added with the set_image_path or "
-                        "set_image_data methods."
-                        % image_id
-                    )
+                    if not self.ignore_undefined_variables:
+                        raise TemplateException(
+                            "Can't find data for the image named 'py3o.%s'; "
+                            "make sure it has been added with the "
+                            "set_image_path or set_image_data methods."
+                            % image_id
+                        )
+                    else:
+                        continue
 
                 # Replace the xlink:href attribute of the image to point to
                 # ours.
