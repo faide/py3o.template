@@ -222,5 +222,5 @@ class TestTemplate(unittest.TestCase):
         assert len(paragraphs) == 1, "Only one paragraph should have been found"
         p = paragraphs[0]
         result_text = p.text
-        print result_text
+        print(result_text)
         assert result_text == "Invoice #1234 for a total of 12345,35 EUR"
