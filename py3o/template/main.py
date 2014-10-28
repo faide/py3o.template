@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import decimal
+import logging
 import os
 
 import lxml.etree
@@ -17,6 +18,8 @@ from genshi.filters.transform import Transformer
 from pyjon.utils import get_secure_filename
 
 from py3o.template.decoder import Decoder
+
+log = logging.getLogger(__name__)
 
 # expressed in clark notation: http://www.jclark.com/xml/xmlns.htm
 XML_NS = "{http://www.w3.org/XML/1998/namespace}"
@@ -353,11 +356,16 @@ class Template(object):
         link.getparent().remove(link)
         closing_link.getparent().remove(closing_link)
 
-        move_siblings(
-            opening_row, closing_row, genshi_node,
-            keep_start_boundary=keep_start_boundary,
-            keep_end_boundary=keep_end_boundary,
-        )
+        try:
+            move_siblings(
+                opening_row, closing_row, genshi_node,
+                keep_start_boundary=keep_start_boundary,
+                keep_end_boundary=keep_end_boundary,
+            )
+        except ValueError as e:
+            log.exception(e)
+            raise TemplateException("Could not move siblings for '%s'" %
+                                    py3o_base)
 
     def get_user_variables(self):
         """a public method to help report engines to introspect
