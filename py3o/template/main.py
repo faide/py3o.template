@@ -39,6 +39,9 @@ class TemplateException(ValueError):
         """
         self.message = message
 
+    def __str__(self):
+        return self.message
+
 
 def detect_keep_boundary(start, end, namespaces):
     """a helper to inspect a link and see if we should keep the link boundary
