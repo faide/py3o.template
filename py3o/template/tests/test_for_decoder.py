@@ -43,20 +43,19 @@ class TestDecoder(unittest.TestCase):
         """
         self.d.decode("for i, j in enumerate(list): pass\n")
         its = self.d.get_iterables()
-        assert its.get_func_str() == 'enumerate(list)'
+        assert str(its) == 'enumerate(list)'
 
     def test_callable_w_kwargs_for_iter(self):
         """ Test when iter is a callable with keywords arguments
         """
         self.d.decode("for i, j in func(arg1, kwarg1=some_values): pass\n")
         its = self.d.get_iterables()
-        assert its.get_func_str() == 'func(arg1, kwarg1=some_values)'
+        assert str(its) == 'func(arg1, kwarg1=some_values)'
 
     def test_for_dot_attribute(self):
         """ Test when iter is a callable from a dotted expression
         """
         self.d.decode("for i in test.myattr.other_attr: pass\n")
         its = self.d.get_iterables()
-        str = its.get_attr_str()
-        assert str == 'test.myattr.other_attr'
+        assert str(its) == 'test.myattr.other_attr'
 

@@ -5,7 +5,7 @@ class Callable(object):
     def __init__(self, c):
         self.ast = c
 
-    def get_func_str(self):
+    def __str__(self):
         func_name = self.ast.func.id
         args = ', '.join([a.id for a in self.ast.args])
         kwargs = ', '.join(
@@ -25,7 +25,7 @@ class Attribute(object):
             return self.__recur_construct_str(value.value) + '.' + value.attr
         return value.id
 
-    def get_attr_str(self):
+    def __str__(self):
         return self.__recur_construct_str(self.ast)
 
 
