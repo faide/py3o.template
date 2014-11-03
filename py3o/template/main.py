@@ -231,7 +231,7 @@ class Template(object):
         for e in get_instructions(self.content_trees[0], self.namespaces):
             childs = e.getchildren()
             if childs:
-                res.append(childs.text)
+                res.extend([c.text for c in childs])
             else:
                 res.append(e.text)
         return res
@@ -240,7 +240,6 @@ class Template(object):
         """ Public method to get the mapping of all
         variables defined in the template
         """
-        user_vars = self.get_user_variables()
         instructions = self.get_user_instructions()
 
         # For now we just want for loops
