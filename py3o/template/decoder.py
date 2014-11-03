@@ -16,6 +16,19 @@ class Callable(object):
         return func_name + '(' + args + kwargs + ')'
 
 
+class Attribute(object):
+    def __init__(self, a):
+        self.ast = a
+
+    def __recur_construct_str(self, value):
+        if isinstance(value, ast.Attribute):
+            return self.__recur_construct_str(value.value) + '.' + value.attr
+        return value.id
+
+    def get_attr_str(self):
+        return self.__recur_construct_str(self.ast)
+
+
 class ForDecoder(object):
     def __init__(self, ast_for):
         self.ast = ast_for
@@ -37,6 +50,8 @@ class ForDecoder(object):
             return it.id
         if isinstance(it, ast.Call):
             return Callable(it)
+        if isinstance(it, ast.Attribute):
+            return Attribute(it)
 
 
 class Decoder(object):
