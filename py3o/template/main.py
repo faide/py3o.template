@@ -17,7 +17,7 @@ from genshi.filters.transform import Transformer
 
 from pyjon.utils import get_secure_filename
 
-from py3o.template.decoder import Decoder
+from py3o.template.decoder import Decoder, ForList
 
 log = logging.getLogger(__name__)
 
@@ -241,15 +241,34 @@ class Template(object):
         variables defined in the template
         """
         instructions = self.get_user_instructions()
+        user_variables = self.get_user_variables()
 
         # For now we just want for loops
-        instructions = [i for i in instructions if i.startswith('for')]
+        instructions = [i for i in instructions if i.startswith('for') or i == '/for']
 
         # Now we call the decoder to get variable mapping from instructions
         d = Decoder()
-        res = {}
+        res = ForList('root', None)
+        tmp = res
+        for_insts = {}
+        # Create a hierarchie with for loops
         for i in instructions:
-            res.update(d.decode_py3o_instruction(i))
+            if i == '/for':
+                tmp = tmp.parent
+            else:
+                # Decode the instruction
+                inst = d.decode_py3o_instruction(i)
+                for_insts.update(inst)
+                for_vars = [v for v in user_variables if v.split('.')[0] == inst.keys()[0]]
+                new_list = ForList(str(inst.values()[0]), inst.keys()[0])
+                tmp.add_child(new_list)
+                tmp = new_list
+                for v in for_vars:
+                    tmp.add_attr(v)
+        # Insert global variable in the root node
+        for v in user_variables:
+            if not v.split('.')[0] in for_insts.keys():
+                res.add_attr(v)
         return res
 
     @staticmethod

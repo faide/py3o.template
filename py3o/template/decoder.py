@@ -1,4 +1,5 @@
 import ast
+import json
 
 
 class Callable(object):
@@ -19,6 +20,8 @@ class Callable(object):
 class Attribute(object):
     def __init__(self, a):
         self.ast = a
+        self._str = self.__recur_construct_str(a)
+        self._list = self._str.split('.')
 
     def __recur_construct_str(self, value):
         if isinstance(value, ast.Attribute):
@@ -26,7 +29,56 @@ class Attribute(object):
         return value.id
 
     def __str__(self):
-        return self.__recur_construct_str(self.ast)
+        return self._str
+
+    def get_root(self):
+        return self._list[0]
+
+
+class ForList(object):
+    def __init__(self, name, var_from):
+        self.name = name
+        self.childs = []
+        self.attrs = []
+        self._parent = None
+        self.var_from = var_from
+
+    def add_child(self, child):
+        if not isinstance(child, ForList):
+            raise Exception()
+        child.parent = self
+        self.childs.append(child)
+
+    def add_attr(self, attr):
+        self.attrs.append(attr)
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, parent):
+        self._parent = parent
+
+    @staticmethod
+    def __recur_jsonify(forlist, data_dict, res):
+        for a in forlist.attrs:
+            a_list = a.split('.')
+            if a_list[0] in data_dict:
+                res[a_list[1]] = reduce(getattr, a_list[1:], data_dict[a_list[0]])
+        for c in forlist.childs:
+            iter = c.name.split('.')
+            res[iter[1]] = []
+            for i, val in enumerate(reduce(getattr, iter[1:], data_dict[iter[0]])):
+                new_data_dict = {c.var_from: val}
+                res[iter[1]].append({})
+                ForList.__recur_jsonify(c, new_data_dict, res[iter[1]][i])
+
+    def jsonify(self, data_dict):
+        res = {}
+        ForList.__recur_jsonify(self, data_dict, res)
+        return json.dumps(res)
+
 
 
 class ForDecoder(object):
@@ -48,10 +100,28 @@ class ForDecoder(object):
             return None
         if isinstance(it, ast.Name):
             return it.id
-        if isinstance(it, ast.Call):
-            return Callable(it)
         if isinstance(it, ast.Attribute):
             return Attribute(it)
+
+    def get_mapping(self):
+        it = self.ast.iter
+        target = self.ast.target
+
+        # If a callable is found, only enumerate will be treated for now
+        if isinstance(it, ast.Call):
+            if (it.func.id == 'enumerate' and
+                    len(it.args) == 1 and
+                    isinstance(target, ast.Tuple) and
+                    len(target.elts) == 2):
+                attr = (
+                    it.args[0].id
+                    if isinstance(it.args[0], ast.Name)
+                    else Attribute(it.args[0])
+                )
+                return target.elts[1].id, attr
+            else:
+                raise Exception()
+        return self.get_variables(), self.get_iterables()
 
 
 class Decoder(object):
@@ -75,11 +145,10 @@ class Decoder(object):
             return
 
         self.body = bodies[0]
-        #TODO: Manage other instructions
+        # TODO: Manage other instructions
         if isinstance(self.body, ast.For):
             obj = ForDecoder(self.body)
-            self.vars = obj.get_variables()
-            self.iters = obj.get_iterables()
+            self.vars, self.iters = obj.get_mapping()
             return {self.vars: self.iters}
         else:
             raise NotImplementedError()

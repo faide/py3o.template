@@ -38,19 +38,19 @@ class TestDecoder(unittest.TestCase):
         its = self.d.get_iterables()
         assert its == 'toto'
 
-    def test_simple_callable_for_iter(self):
+    def test_callable_enumerate_for_iter(self):
         """ Test when iter is a callable
         """
         self.d.decode("for i, j in enumerate(list): pass\n")
         its = self.d.get_iterables()
-        assert str(its) == 'enumerate(list)'
+        assert str(its) == 'list'
 
-    def test_callable_w_kwargs_for_iter(self):
-        """ Test when iter is a callable with keywords arguments
+    def test_callable_enumerate_for_iter_with_attr(self):
+        """ Test when iter is enumerate with attrs as arguments
         """
-        self.d.decode("for i, j in func(arg1, kwarg1=some_values): pass\n")
+        self.d.decode("for i, j in enumerate(object.mylist): pass\n")
         its = self.d.get_iterables()
-        assert str(its) == 'func(arg1, kwarg1=some_values)'
+        assert str(its) == 'object.mylist'
 
     def test_for_dot_attribute(self):
         """ Test when iter is a callable from a dotted expression
