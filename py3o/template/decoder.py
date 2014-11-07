@@ -1,5 +1,7 @@
+# -*- encoding: utf-8 -*-
 import ast
 import json
+from six.moves import reduce
 
 
 class Callable(object):
@@ -74,23 +76,32 @@ class ForList(object):
                     if not i in tmp:
                         tmp[i] = {}
                     tmp = tmp[i]
-                tmp[a_list[-1]] = reduce(getattr, a_list[1:], data_dict[a_list[0]])
-        # Then create a list for all children, modify the datadict to fit the new child
-        #  and call myself
+                tmp[a_list[-1]] = reduce(
+                    getattr,
+                    a_list[1:],
+                    data_dict[a_list[0]]
+                )
+        # Then create a list for all children,
+        # modify the datadict to fit the new child
+        # and call myself
         for c in forlist.childs:
             it = c.name.split('.')
             res[it[1]] = []
-            for i, val in enumerate(reduce(getattr, it[1:], data_dict[it[0]])):
+            for i, val in enumerate(
+                    reduce(getattr, it[1:], data_dict[it[0]])
+            ):
                 new_data_dict = {c.var_from: val}
                 res[it[1]].append({})
                 ForList.__recur_jsonify(c, new_data_dict, res[it[1]][i])
 
     def jsonify(self, data_dict):
+        """Construct a json dump of our ForList object.
 
-        """
-        This function construct a json dump of our ForList object.
-        :param data_dict: a dictionary with {key: browsable struct}
-        :return: json representation of the datastruct
+        :param data_dict:
+         a dictionary with {key: browsable struct}
+
+        :return:
+         json representation of the datastruct
         """
         res = {}
         # The first level is a little bit special
@@ -114,7 +125,6 @@ class ForList(object):
                 res[it[0]][it[1]].append({})
                 ForList.__recur_jsonify(c, new_data_dict, res[it[0]][it[1]][i])
         return json.dumps(res)
-
 
 
 class ForDecoder(object):
