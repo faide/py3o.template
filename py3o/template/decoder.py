@@ -62,6 +62,10 @@ class ForList(object):
 
     @staticmethod
     def __recur_jsonify(forlist, data_dict, res):
+        """ Recursive function that fill up the disctionary
+        """
+        # First we go through all attrs from the ForList and add respective
+        #  keys on the dict.
         for a in forlist.attrs:
             a_list = a.split('.')
             if a_list[0] in data_dict:
@@ -71,6 +75,8 @@ class ForList(object):
                         tmp[i] = {}
                     tmp = tmp[i]
                 tmp[a_list[-1]] = reduce(getattr, a_list[1:], data_dict[a_list[0]])
+        # Then create a list for all children, modify the datadict to fit the new child
+        #  and call myself
         for c in forlist.childs:
             it = c.name.split('.')
             res[it[1]] = []
@@ -80,6 +86,12 @@ class ForList(object):
                 ForList.__recur_jsonify(c, new_data_dict, res[it[1]][i])
 
     def jsonify(self, data_dict):
+
+        """
+        This function construct a json dump of our ForList object.
+        :param data_dict: a dictionary with {key: browsable struct}
+        :return: json representation of the datastruct
+        """
         res = {}
         # The first level is a little bit special
         for a in self.attrs:

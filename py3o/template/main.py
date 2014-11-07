@@ -248,6 +248,8 @@ class Template(object):
 
         # Now we call the decoder to get variable mapping from instructions
         d = Decoder()
+
+        # our root ForList, we give it a special name that should not be used
         res = ForList('__py3o__.root', None)
         tmp = res
         for_insts = {}
@@ -258,11 +260,14 @@ class Template(object):
             else:
                 # Decode the instruction
                 inst = d.decode_py3o_instruction(i)
+                # we keep all inst in a dict
                 for_insts.update(inst)
                 for_vars = [v for v in user_variables if v.split('.')[0] == inst.keys()[0]]
+                # create a new ForList for the forloop and add it to the children
                 new_list = ForList(str(inst.values()[0]), inst.keys()[0])
                 tmp.add_child(new_list)
                 tmp = new_list
+                # Add the attributes to our new child
                 for v in for_vars:
                     tmp.add_attr(v)
         # Insert global variable in the root node
