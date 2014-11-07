@@ -65,18 +65,42 @@ class ForList(object):
         for a in forlist.attrs:
             a_list = a.split('.')
             if a_list[0] in data_dict:
-                res[a_list[1]] = reduce(getattr, a_list[1:], data_dict[a_list[0]])
+                tmp = res
+                for i in a_list[1:-1]:
+                    if not i in tmp:
+                        tmp[i] = {}
+                    tmp = tmp[i]
+                tmp[a_list[-1]] = reduce(getattr, a_list[1:], data_dict[a_list[0]])
         for c in forlist.childs:
-            iter = c.name.split('.')
-            res[iter[1]] = []
-            for i, val in enumerate(reduce(getattr, iter[1:], data_dict[iter[0]])):
+            it = c.name.split('.')
+            res[it[1]] = []
+            for i, val in enumerate(reduce(getattr, it[1:], data_dict[it[0]])):
                 new_data_dict = {c.var_from: val}
-                res[iter[1]].append({})
-                ForList.__recur_jsonify(c, new_data_dict, res[iter[1]][i])
+                res[it[1]].append({})
+                ForList.__recur_jsonify(c, new_data_dict, res[it[1]][i])
 
     def jsonify(self, data_dict):
         res = {}
-        ForList.__recur_jsonify(self, data_dict, res)
+        # The first level is a little bit special
+        for a in self.attrs:
+            a_list = a.split('.')
+            if not a_list[0] in res:
+                res[a_list[0]] = {}
+            tmp = res[a_list[0]]
+            for i in a_list[1:-1]:
+                if not i in tmp:
+                    tmp[i] = {}
+                tmp = tmp[i]
+            tmp[a_list[-1]] = reduce(getattr, a_list[1:], data_dict[a_list[0]])
+        for c in self.childs:
+            it = c.name.split('.')
+            if not it[0] in res:
+                res[it[0]] = {}
+            res[it[0]][it[1]] = []
+            for i, val in enumerate(reduce(getattr, it[1:], data_dict[it[0]])):
+                new_data_dict = {c.var_from: val}
+                res[it[0]][it[1]].append({})
+                ForList.__recur_jsonify(c, new_data_dict, res[it[0]][it[1]][i])
         return json.dumps(res)
 
 

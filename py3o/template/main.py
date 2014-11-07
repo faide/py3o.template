@@ -248,7 +248,7 @@ class Template(object):
 
         # Now we call the decoder to get variable mapping from instructions
         d = Decoder()
-        res = ForList('root', None)
+        res = ForList('__py3o__.root', None)
         tmp = res
         for_insts = {}
         # Create a hierarchie with for loops
