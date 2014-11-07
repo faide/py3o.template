@@ -262,7 +262,7 @@ class Template(object):
                 inst = d.decode_py3o_instruction(i)
                 # we keep all inst in a dict
                 for_insts.update(inst)
-                for_vars = [v for v in user_variables if v.split('.')[0] == inst.keys()[0]]
+                for_vars = [v for v in user_variables if v.split('.')[0] == list(inst.keys())[0]]
                 # create a new ForList for the forloop and add it to the children
                 new_list = ForList(str(inst.values()[0]), inst.keys()[0])
                 tmp.add_child(new_list)
