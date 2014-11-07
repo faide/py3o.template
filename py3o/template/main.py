@@ -140,8 +140,8 @@ def get_list_transformer(namespaces):
             'text'
         )
     ).attr(
-        '{}id'.format(XML_NS),
-        lambda *args: "list{}".format(uuid4().hex)
+        '{0}id'.format(XML_NS),
+        lambda *args: "list{0}".format(uuid4().hex)
     )
 
 
