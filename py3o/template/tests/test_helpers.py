@@ -262,22 +262,6 @@ class TestHelpers(unittest.TestCase):
             else:
                 assert False, "We should find one single link"
 
-    def test_get_user_instructions_mapping(self):
-        """ Test the get_user_fields_mapping
-        This should return a dict representation of all the variable inside the template,
-        including the variable declared inside for-loops
-        """
-
-        source_odt_filename = pkg_resources.resource_filename(
-            'py3o.template',
-            'tests/templates/py3o_example_template.odt'
-        )
-        outfilename = get_secure_filename()
-
-        template = Template(source_odt_filename, outfilename)
-        user_fields_mapping = template.get_user_instructions_mapping()
-        assert user_fields_mapping == {'item': 'items', 'line': 'items'}
-
     def test_move_siblings_1(self):
         template_xml = pkg_resources.resource_filename(
             'py3o.template',
