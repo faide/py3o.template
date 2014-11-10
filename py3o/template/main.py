@@ -264,7 +264,7 @@ class Template(object):
                 for_insts.update(inst)
                 for_vars = [v for v in user_variables if v.split('.')[0] == list(inst.keys())[0]]
                 # create a new ForList for the forloop and add it to the children
-                new_list = ForList(str(inst.values()[0]), inst.keys()[0])
+                new_list = ForList(str(list(inst.values())[0]), list(inst.keys())[0])
                 tmp.add_child(new_list)
                 tmp = new_list
                 # Add the attributes to our new child

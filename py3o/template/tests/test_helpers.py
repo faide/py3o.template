@@ -2,10 +2,17 @@
 __author__ = 'faide'
 
 import unittest
+import json
 import os
 
 import lxml.etree
 import pkg_resources
+import six
+
+if six.PY3:
+    from unittest.mock import Mock
+elif six.PY2:
+    from mock import Mock
 
 from pyjon.utils import get_secure_filename
 
@@ -217,6 +224,41 @@ class TestHelpers(unittest.TestCase):
         ]
         #print(user_instructions)
         assert set(user_instructions) == set(expected_vars)
+
+    def test_get_user_instruction_mapping(self):
+        """test the jsonified result of get_user_instruction_mapping"""
+        source_odt_filename = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_example_template.odt'
+        )
+        outfilename = get_secure_filename()
+
+        template = Template(source_odt_filename, outfilename)
+        res = template.get_user_instructions_mapping()
+        expected_res = json.dumps({
+            'document': {
+                'total': 0
+            },
+            'items': [{
+                'val1': 1,
+                'val2': 2,
+                'val3': 3,
+                'Amount': 4,
+                'Currency': 5,
+                'InvoiceRef': 6,
+            }]
+        })
+        data = {
+            'document': Mock(total=0),
+            'items': [
+                Mock(
+                    val1=1, val2=2, val3=3, Amount=4, Currency=5, InvoiceRef=6
+                )
+            ]
+        }
+        res = res.jsonify(data)
+        assert res == expected_res
+
 
     def test_detect_boundary_false(self):
         """boundary detection should say no!!"""
