@@ -9,14 +9,17 @@ import lxml.etree
 import pkg_resources
 import six
 
-if six.PY3:
-    from unittest.mock import Mock
-elif six.PY2:
-    from mock import Mock
-
 from pyjon.utils import get_secure_filename
 
 from py3o.template.main import move_siblings, detect_keep_boundary, Template
+from py3o.template.decoder import ForList
+
+if six.PY3:
+    # noinspection PyUnresolvedReferences
+    from unittest.mock import Mock
+elif six.PY2:
+    # noinspection PyUnresolvedReferences
+    from mock import Mock
 
 
 class TestHelpers(unittest.TestCase):
@@ -234,7 +237,7 @@ class TestHelpers(unittest.TestCase):
         outfilename = get_secure_filename()
 
         template = Template(source_odt_filename, outfilename)
-        res = template.get_user_instructions_mapping()
+        for_lists, vars = template.get_user_instructions_mapping()
         expected_res = json.dumps({
             'document': {
                 'total': 0
@@ -256,7 +259,7 @@ class TestHelpers(unittest.TestCase):
                 )
             ]
         }
-        res = res.jsonify(data)
+        res = ForList.jsonify(for_lists, vars, data)
         assert res == expected_res
 
 

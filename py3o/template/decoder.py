@@ -4,21 +4,6 @@ import json
 from six.moves import reduce
 
 
-class Callable(object):
-    def __init__(self, c):
-        self.ast = c
-
-    def __str__(self):
-        func_name = self.ast.func.id
-        args = ', '.join([a.id for a in self.ast.args])
-        kwargs = ', '.join(
-            ['%s=%s' % (k.arg, k.value.id) for k in self.ast.keywords]
-        )
-        if kwargs:
-            kwargs = ', ' + kwargs
-        return func_name + '(' + args + kwargs + ')'
-
-
 class Attribute(object):
     def __init__(self, a):
         self.ast = a
@@ -46,8 +31,6 @@ class ForList(object):
         self.var_from = var_from
 
     def add_child(self, child):
-        if not isinstance(child, ForList):
-            raise Exception()
         child.parent = self
         self.childs.append(child)
 
@@ -94,36 +77,42 @@ class ForList(object):
                 res[it[1]].append({})
                 ForList.__recur_jsonify(c, new_data_dict, res[it[1]][i])
 
-    def jsonify(self, data_dict):
-        """Construct a json dump of our ForList object.
+    @staticmethod
+    def jsonify(for_lists, global_vars, data_dict):
+        """ Construct a json object from a list of ForList object
 
-        :param data_dict:
-         a dictionary with {key: browsable struct}
-
-        :return:
-         json representation of the datastruct
+        :param for_lists: list of for_list
+        :param global_vars: list of global vars to add
+        :param data_dict: data from an orm-like object (with dot notation)
+        :return: a JSON representation of the ForList objects
         """
         res = {}
+
         # The first level is a little bit special
-        for a in self.attrs:
+        for a in global_vars:
             a_list = a.split('.')
-            if not a_list[0] in res:
-                res[a_list[0]] = {}
-            tmp = res[a_list[0]]
-            for i in a_list[1:-1]:
+            tmp = res
+            for i in a_list[:-1]:
                 if not i in tmp:
                     tmp[i] = {}
                 tmp = tmp[i]
             tmp[a_list[-1]] = reduce(getattr, a_list[1:], data_dict[a_list[0]])
-        for c in self.childs:
-            it = c.name.split('.')
-            if not it[0] in res:
-                res[it[0]] = {}
-            res[it[0]][it[1]] = []
+        for for_list in for_lists:
+            it = for_list.name.split('.')
+            tmp = res
+            for i in it[:-1]:
+                if not i in tmp:
+                    tmp[i] = {}
+                tmp = tmp[i]
+            if not it[-1] in tmp:
+                tmp[it[-1]] = [{}]
+            tmp = tmp[it[-1]]
             for i, val in enumerate(reduce(getattr, it[1:], data_dict[it[0]])):
-                new_data_dict = {c.var_from: val}
-                res[it[0]][it[1]].append({})
-                ForList.__recur_jsonify(c, new_data_dict, res[it[0]][it[1]][i])
+                new_data_dict = {for_list.var_from: val}
+                if not it[-1] in res:
+                    tmp.append({})
+                ForList.__recur_jsonify(for_list, new_data_dict, tmp[i])
+
         return json.dumps(res)
 
 
@@ -194,8 +183,7 @@ class Decoder(object):
         # TODO: Manage other instructions
         if isinstance(self.body, ast.For):
             obj = ForDecoder(self.body)
-            self.vars, self.iters = obj.get_mapping()
-            return {self.vars: self.iters}
+            return obj.get_mapping()
         else:
             raise NotImplementedError()
 

@@ -250,31 +250,38 @@ class Template(object):
         d = Decoder()
 
         # our root ForList, we give it a special name that should not be used
-        res = ForList('__py3o__.root', None)
-        tmp = res
+        res = []
         for_insts = {}
         # Create a hierarchie with for loops
         for i in instructions:
             if i == '/for':
+                # noinspection PyUnboundLocalVariable
                 tmp = tmp.parent
             else:
-                # Decode the instruction
-                inst = d.decode_py3o_instruction(i)
+                # Decode the instruction:
+                # inst.values() -> forloop variable
+                # inst.keys() -> forloop iterable
+                var, it = d.decode_py3o_instruction(i)
                 # we keep all inst in a dict
-                for_insts.update(inst)
-                for_vars = [v for v in user_variables if v.split('.')[0] == list(inst.keys())[0]]
-                # create a new ForList for the forloop and add it to the children
-                new_list = ForList(str(list(inst.values())[0]), list(inst.keys())[0])
-                tmp.add_child(new_list)
-                tmp = new_list
+                for_insts[var] = it
+                # get the variable defined inside the for loop
+                for_vars = [v for v in user_variables if v.split('.')[0] == var]
+                # create a new ForList for the forloop and add it to the children or list
+                new_list = ForList(it, var)
+                if len(it.split('.')) == 1:
+                    # We have a root for loop
+                    res.append(new_list)
+                    tmp = res[-1]
+                else:
+                    # noinspection PyUnboundLocalVariable
+                    tmp.add_child(new_list)
+                    tmp = new_list
                 # Add the attributes to our new child
                 for v in for_vars:
                     tmp.add_attr(v)
-        # Insert global variable in the root node
-        for v in user_variables:
-            if not v.split('.')[0] in for_insts.keys():
-                res.add_attr(v)
-        return res
+        # Insert global variable in a second list
+        vars = [v for v in user_variables if not v.split('.')[0] in for_insts.keys()]
+        return res, vars
 
     @staticmethod
     def handle_instructions(content_trees, namespaces):
