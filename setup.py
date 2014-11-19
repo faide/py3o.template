@@ -35,6 +35,6 @@ setup(
     entry_points="""
     # -*- Entry points: -*-
     """,
-    tests_require=['nose', 'nosexcover'],
+    tests_require=['nose', 'nosexcover', 'mock'],
     test_suite='nose.collector',
 )
