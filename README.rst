@@ -88,6 +88,13 @@ directory.
 Changelog
 =========
 
+0.8 Nov. 19 2014
+~~~~~~~~~~~~~~~~
+
+  - Added better unit tests
+  - Fixed corner cases in the variable introspection mechanism
+  - Better handling of "ignore_undefined" that now also allows undefined images
+
 0.7 Oct. 15 2014
 ~~~~~~~~~~~~~~~~
 
