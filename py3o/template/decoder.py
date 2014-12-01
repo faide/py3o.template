@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import ast
 import json
+# noinspection PyUnresolvedReferences
 from six.moves import reduce
 
 
@@ -24,11 +25,14 @@ class Attribute(object):
 
 class ForList(object):
     def __init__(self, name, var_from):
-        self.name = name
+        self.name = str(name)
         self.childs = []
         self.attrs = []
         self._parent = None
         self.var_from = var_from
+
+    def __eq__(self, other):
+        return self.name == other.name
 
     def add_child(self, child):
         child.parent = self
@@ -46,49 +50,59 @@ class ForList(object):
         self._parent = parent
 
     @staticmethod
-    def __recur_jsonify(forlist, data_dict, res):
+    def __recur_to_dict(forlist, data_dict, res):
         """ Recursive function that fill up the disctionary
         """
         # First we go through all attrs from the ForList and add respective
         #  keys on the dict.
         for a in forlist.attrs:
             a_list = a.split('.')
+            if len(a_list) == 1:
+                res = data_dict[a_list[0]]
+                return res
             if a_list[0] in data_dict:
                 tmp = res
                 for i in a_list[1:-1]:
                     if not i in tmp:
                         tmp[i] = {}
                     tmp = tmp[i]
-                tmp[a_list[-1]] = reduce(
-                    getattr,
-                    a_list[1:],
-                    data_dict[a_list[0]]
-                )
+                if len(a_list) == 1:
+                    tmp[a_list[0]] = data_dict[a_list[0]]
+                else:
+                    tmp[a_list[-1]] = reduce(
+                        getattr,
+                        a_list[1:],
+                        data_dict[a_list[0]]
+                    )
         # Then create a list for all children,
         # modify the datadict to fit the new child
         # and call myself
         for c in forlist.childs:
             it = c.name.split('.')
-            res[it[1]] = []
+            res[it[-1]] = []
             for i, val in enumerate(
                     reduce(getattr, it[1:], data_dict[it[0]])
             ):
                 new_data_dict = {c.var_from: val}
-                res[it[1]].append({})
-                ForList.__recur_jsonify(c, new_data_dict, res[it[1]][i])
+                if len(res[it[-1]]) <= i:
+                    res[it[-1]].append({})
+                res[it[-1]] = ForList.__recur_to_dict(c, new_data_dict, res[it[-1]][i])
+
+        return res
 
     @staticmethod
-    def jsonify(for_lists, global_vars, data_dict):
-        """ Construct a json object from a list of ForList object
+    def to_dict(for_lists, global_vars, data_dict):
+        """ Construct a dict object from a list of ForList object
 
         :param for_lists: list of for_list
         :param global_vars: list of global vars to add
         :param data_dict: data from an orm-like object (with dot notation)
-        :return: a JSON representation of the ForList objects
+        :return: a dict representation of the ForList objects
         """
         res = {}
 
         # The first level is a little bit special
+        # Manage global variables
         for a in global_vars:
             a_list = a.split('.')
             tmp = res
@@ -97,6 +111,7 @@ class ForList(object):
                     tmp[i] = {}
                 tmp = tmp[i]
             tmp[a_list[-1]] = reduce(getattr, a_list[1:], data_dict[a_list[0]])
+        # Then manage for lists recursively
         for for_list in for_lists:
             it = for_list.name.split('.')
             tmp = res
@@ -105,15 +120,23 @@ class ForList(object):
                     tmp[i] = {}
                 tmp = tmp[i]
             if not it[-1] in tmp:
-                tmp[it[-1]] = [{}]
+                tmp[it[-1]] = []
             tmp = tmp[it[-1]]
-            for i, val in enumerate(reduce(getattr, it[1:], data_dict[it[0]])):
+            if not it[0] in data_dict:
+                continue
+            if len(it) == 1:
+                loop = enumerate(data_dict[it[0]])
+            else:
+                loop = enumerate(reduce(getattr, it[-1:], data_dict[it[0]]))
+            for i, val in loop:
                 new_data_dict = {for_list.var_from: val}
-                if not it[-1] in res:
+                # We append a new dict only if we need
+                if len(tmp) <= i:
                     tmp.append({})
-                ForList.__recur_jsonify(for_list, new_data_dict, tmp[i])
+                # Call myself with new context, and get result
+                tmp[i] = ForList.__recur_to_dict(for_list, new_data_dict, tmp[i])
 
-        return json.dumps(res)
+        return res
 
 
 class ForDecoder(object):

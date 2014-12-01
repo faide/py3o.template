@@ -238,7 +238,7 @@ class TestHelpers(unittest.TestCase):
 
         template = Template(source_odt_filename, outfilename)
         for_lists, vars = template.get_user_instructions_mapping()
-        expected_res = json.dumps({
+        expected_res = {
             'document': {
                 'total': 0
             },
@@ -250,7 +250,7 @@ class TestHelpers(unittest.TestCase):
                 'Currency': 5,
                 'InvoiceRef': 6,
             }]
-        })
+        }
         data = {
             'document': Mock(total=0),
             'items': [
@@ -259,7 +259,7 @@ class TestHelpers(unittest.TestCase):
                 )
             ]
         }
-        res = ForList.jsonify(for_lists, vars, data)
+        res = ForList.to_dict(for_lists, vars, data)
         assert res == expected_res
 
 
@@ -401,3 +401,25 @@ class TestHelpers(unittest.TestCase):
         result_e = result_e.replace("\n", "").replace(" ", "")
 
         assert result_a == result_e
+
+    def test_content_tree_with_child_instruction(self):
+        template_xml = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_example_invalid_template.odt'
+        )
+        t = Template(template_xml, get_secure_filename())
+        usr_insts = t.get_user_instructions()
+        assert usr_insts == ['for="item in items"', '/for', 'for="item in items', '2', '"', '/for']
+
+    #def test_nested_list(self):
+    #    template_xml = pkg_resources.resource_filename(
+    #        'py3o.template',
+    #        'tests/templates/py3o_nested_list_template.odt'
+    #    )
+    #    t = Template(template_xml, get_secure_filename())
+    #    for_list = t.get_user_instructions_mapping()[0]
+    #    print(for_list)
+    #    json_str = ForList.jsonify(for_list, [], {
+    #        'items': [{'lines': [{'val': 5}, {'val': 4}]}, {'lines': [{'val': 9}]}]}
+    #    )
+    #    assert usr_insts == []

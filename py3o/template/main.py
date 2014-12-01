@@ -249,13 +249,12 @@ class Template(object):
         # Now we call the decoder to get variable mapping from instructions
         d = Decoder()
 
-        # our root ForList, we give it a special name that should not be used
         res = []
         for_insts = {}
+        tmp = res
         # Create a hierarchie with for loops
         for i in instructions:
             if i == '/for':
-                # noinspection PyUnboundLocalVariable
                 tmp = tmp.parent
             else:
                 # Decode the instruction:
@@ -268,20 +267,20 @@ class Template(object):
                 for_vars = [v for v in user_variables if v.split('.')[0] == var]
                 # create a new ForList for the forloop and add it to the children or list
                 new_list = ForList(it, var)
-                if len(it.split('.')) == 1:
+                if isinstance(tmp, list):
                     # We have a root for loop
                     res.append(new_list)
                     tmp = res[-1]
+                    tmp.parent = res
                 else:
-                    # noinspection PyUnboundLocalVariable
                     tmp.add_child(new_list)
                     tmp = new_list
                 # Add the attributes to our new child
                 for v in for_vars:
                     tmp.add_attr(v)
         # Insert global variable in a second list
-        vars = [v for v in user_variables if not v.split('.')[0] in for_insts.keys()]
-        return res, vars
+        user_vars = [v for v in user_variables if not v.split('.')[0] in for_insts.keys()]
+        return res, user_vars
 
     @staticmethod
     def handle_instructions(content_trees, namespaces):
