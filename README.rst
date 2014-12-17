@@ -9,7 +9,7 @@ merging your data sets with a corresponding templated OpenOffice document.
 It is plateform independent and does not require LibreOffice/OpenOffice itself
 to generate an ODF file.
 
-If you want to generate a PDF or any other support output format you will then
+If you want to generate a PDF or any other supported output format you will then
 need to have a server with either LibreOffice or OpenOffice and to install
 the `py3o.renderserver`_ on it. We also provide a docker image on
 the `docker hub`_
