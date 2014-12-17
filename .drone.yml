@@ -2,6 +2,6 @@ image: "python:3-onbuild"
 script:
     pip install --upgrade setuptools
     pip install --upgrade pip
-    pip install --upgrade pip
+    pip install --upgrade wheel
     python setup.py develop
     python setup.py test
