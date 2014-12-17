@@ -43,7 +43,7 @@ explained, please! create a ticket `in our ticketing system`_
 Example Usage
 =============
 
-Below is an example that you can find in the source tarball inside the examples
+Below is an example that you can find in the source code inside the examples
 directory.
 
 ::
