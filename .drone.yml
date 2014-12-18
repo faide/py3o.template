@@ -5,4 +5,5 @@ script:
     pip install --upgrade wheel
     python setup.py develop
     pip install nose
+    pip install coverage
     python setup.py test
