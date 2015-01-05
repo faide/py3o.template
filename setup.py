@@ -27,7 +27,7 @@ setup(
     zip_safe=True,
     install_requires=[
         'setuptools',
-        'six',
+        'six>=1.4',
         'lxml',
         'genshi',
         'pyjon.utils > 0.6',
