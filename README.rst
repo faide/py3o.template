@@ -88,6 +88,12 @@ directory.
 Changelog
 =========
 
+0.9 Jan. 8 2015
+~~~~~~~~~~~~~~~~
+
+  - Added support for soft page breaks
+
+
 0.8 Nov. 19 2014
 ~~~~~~~~~~~~~~~~
 
