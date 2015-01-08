@@ -2,7 +2,6 @@
 __author__ = 'faide'
 
 import unittest
-import json
 import os
 
 import lxml.etree
@@ -88,8 +87,6 @@ class TestHelpers(unittest.TestCase):
             pretty_print=True,
         ).decode('utf-8')
 
-        #print(type(result_s))
-
         expected_result = open(
             pkg_resources.resource_filename(
                 'py3o.template',
@@ -101,8 +98,6 @@ class TestHelpers(unittest.TestCase):
             '\n', '').replace(' ', '').strip()
 
         result_s = result_s.replace('\n', '').replace(' ', '').strip()
-
-        #print(result_s)
 
         assert result_s == expected_result
 
@@ -166,8 +161,6 @@ class TestHelpers(unittest.TestCase):
             pretty_print=True,
         ).decode('utf-8')
 
-        #print(type(result_s))
-
         expected_result = open(
             pkg_resources.resource_filename(
                 'py3o.template',
@@ -179,8 +172,6 @@ class TestHelpers(unittest.TestCase):
             '\n', '').replace(' ', '').strip()
 
         result_s = result_s.replace('\n', '').replace(' ', '').strip()
-
-        #print(result_s)
 
         assert result_s == expected_result
 
@@ -225,7 +216,6 @@ class TestHelpers(unittest.TestCase):
             '/if',
             '/for',
         ]
-        #print(user_instructions)
         assert set(user_instructions) == set(expected_vars)
 
     def test_get_user_instruction_mapping(self):
@@ -261,7 +251,6 @@ class TestHelpers(unittest.TestCase):
         }
         res = ForList.to_dict(for_lists, vars, data)
         assert res == expected_res
-
 
     def test_detect_boundary_false(self):
         """boundary detection should say no!!"""
@@ -409,9 +398,10 @@ class TestHelpers(unittest.TestCase):
         )
         t = Template(template_xml, get_secure_filename())
         usr_insts = t.get_user_instructions()
-        assert usr_insts == ['for="item in items"', '/for', 'for="item in items', '2', '"', '/for']
+        assert usr_insts == ['for="item in items"', '/for',
+                             'for="item in items', '2', '"', '/for']
 
-    #def test_nested_list(self):
+    # def test_nested_list(self):
     #    template_xml = pkg_resources.resource_filename(
     #        'py3o.template',
     #        'tests/templates/py3o_nested_list_template.odt'
@@ -420,6 +410,7 @@ class TestHelpers(unittest.TestCase):
     #    for_list = t.get_user_instructions_mapping()[0]
     #    print(for_list)
     #    json_str = ForList.jsonify(for_list, [], {
-    #        'items': [{'lines': [{'val': 5}, {'val': 4}]}, {'lines': [{'val': 9}]}]}
+    #        'items': [{'lines': [{'val': 5}, {'val': 4}]},
+    #                  {'lines': [{'val': 9}]}]}
     #    )
     #    assert usr_insts == []
