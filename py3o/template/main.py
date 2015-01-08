@@ -162,6 +162,14 @@ def get_user_fields(content_tree, namespaces):
     )
 
 
+def get_soft_breaks(content_tree, namespaces):
+    xpath_expr = "//text:soft-page-break"
+    return content_tree.xpath(
+        xpath_expr,
+        namespaces=namespaces
+    )
+
+
 class Template(object):
     templated_files = ['content.xml', 'styles.xml', 'META-INF/manifest.xml']
 
@@ -235,6 +243,11 @@ class Template(object):
             else:
                 res.append(e.text)
         return res
+
+    def remove_soft_breaks(self):
+        for soft_break in get_soft_breaks(
+                self.content_trees[0], self.namespaces):
+            soft_break.getparent().remove(soft_break)
 
     def get_user_instructions_mapping(self):
         """ Public method to get the mapping of all
@@ -610,6 +623,13 @@ class Template(object):
                 lambda val: ("%0.2f %%" % val).replace('.', ',')
             )
         )
+
+        # Soft page breaks are hints for applications for rendering a page
+        # break. Soft page breaks in for loops may compromise the paragraph
+        # formatting especially the margins. Open-/LibreOffice will regenerate
+        # the page breaks when displaying the document. Therefore it is save to
+        # remove them.
+        self.remove_soft_breaks()
 
         # first we need to transform the py3o template into a valid
         # Genshi template.
