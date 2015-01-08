@@ -10,7 +10,8 @@ import six
 
 from pyjon.utils import get_secure_filename
 
-from py3o.template.main import move_siblings, detect_keep_boundary, Template
+from py3o.template.main import move_siblings, detect_keep_boundary, Template, \
+    get_soft_breaks
 from py3o.template.decoder import ForList
 
 if six.PY3:
@@ -400,6 +401,27 @@ class TestHelpers(unittest.TestCase):
         usr_insts = t.get_user_instructions()
         assert usr_insts == ['for="item in items"', '/for',
                              'for="item in items', '2', '"', '/for']
+
+    def test_remove_soft_page_breaks(self):
+        template_xml = pkg_resources.resource_filename(
+            'py3o.template',
+            'tests/templates/py3o_soft_page_break.odt'
+        )
+        t = Template(template_xml, get_secure_filename())
+        soft_breaks = get_soft_breaks(t.content_trees[0], t.namespaces)
+        assert len(soft_breaks) > 0
+
+        t.remove_soft_breaks()
+        soft_breaks = get_soft_breaks(t.content_trees[0], t.namespaces)
+        assert len(soft_breaks) == 0
+
+        t = Template(template_xml, get_secure_filename())
+        soft_breaks = get_soft_breaks(t.content_trees[0], t.namespaces)
+        assert len(soft_breaks) > 0
+
+        t.render(data={"list1": [1, 2, 3]})
+        soft_breaks = get_soft_breaks(t.content_trees[0], t.namespaces)
+        assert len(soft_breaks) == 0
 
     # def test_nested_list(self):
     #    template_xml = pkg_resources.resource_filename(
