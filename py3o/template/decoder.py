@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 import ast
-import json
 # noinspection PyUnresolvedReferences
 from six.moves import reduce
 
@@ -51,7 +50,7 @@ class ForList(object):
 
     @staticmethod
     def __recur_to_dict(forlist, data_dict, res):
-        """ Recursive function that fill up the disctionary
+        """Recursive function that fills up the dictionary
         """
         # First we go through all attrs from the ForList and add respective
         #  keys on the dict.
@@ -86,7 +85,9 @@ class ForList(object):
                 new_data_dict = {c.var_from: val}
                 if len(res[it[-1]]) <= i:
                     res[it[-1]].append({})
-                res[it[-1]] = ForList.__recur_to_dict(c, new_data_dict, res[it[-1]][i])
+                res[it[-1]] = ForList.__recur_to_dict(
+                    c, new_data_dict, res[it[-1]][i]
+                )
 
         return res
 
@@ -134,7 +135,9 @@ class ForList(object):
                 if len(tmp) <= i:
                     tmp.append({})
                 # Call myself with new context, and get result
-                tmp[i] = ForList.__recur_to_dict(for_list, new_data_dict, tmp[i])
+                tmp[i] = ForList.__recur_to_dict(
+                    for_list, new_data_dict, tmp[i]
+                )
 
         return res
 
