@@ -9,6 +9,7 @@ syntax: glob
 htmlcov/*
 coverage.xml
 nosetests.xml
+example/TMP
 example/py3o_example_output.odt
 example/py3o_example_page_break_output.odt
 example/py3o_example_output_single_cell.odt
