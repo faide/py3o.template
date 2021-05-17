@@ -2,6 +2,8 @@ Project Home Moved
 ==================
 
 The project hosting has moved to `https://orus.io/florent.aide/py3o.template`_
+
+
 Introduction
 ============
 
