@@ -1,3 +1,7 @@
+Project Home Moved
+==================
+
+The project hosting has moved to `https://orus.io/florent.aide/py3o.template`_
 Introduction
 ============
 
@@ -138,6 +142,7 @@ By order of contribution date:
 .. _Anael Lorimier: https://bitbucket.org/alorimier
 .. _Björn Ricks: https://bitbucket.org/bjoernricks
 
+.. _https://orus.io/florent.aide/py3o.template: https://orus.io/florent.aide/py3o.template
 .. _py3o.renderserver: https://bitbucket.org/faide/py3o.renderserver/
 .. _provide a documentation: http://py3otemplate.readthedocs.org
 .. _in our ticketing system: https://bitbucket.org/faide/py3o.template/issues?status=new&status=open
